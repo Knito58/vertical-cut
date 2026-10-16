@@ -1,0 +1,34 @@
+# Vertical Cut
+
+A client-side Fabric mod for Minecraft 26.3. It shows a vertical cross-section of the
+terrain in front of you in a corner of the screen, like an ultrasound scan of the world,
+so you can spot ores, caves and structures without digging.
+
+This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
+([old forum page](https://www.minecraftforum.net/forums/mapping-and-modding-java-edition/minecraft-mods/1290593-vertical-cut-find-diamonds-iron-and-dungeons)).
+
+**Status:** skeleton. A placeholder box appears in the top-left corner, and **V** shows or hides it.
+
+## Building and testing (Linux)
+
+You need JDK 25 (`java -version` and `javac -version` must both say 25), git and IntelliJ IDEA.
+
+First time:
+
+1. In IntelliJ: **File → New → Project from Version Control**, URL `https://github.com/Knito58/vertical-cut`.
+2. Wait until the Gradle import at the bottom right finishes. The first time it downloads
+   Minecraft and Fabric, which takes a few minutes.
+3. Open the **Gradle** tool window (elephant icon on the right) and run
+   **Tasks → fabric → runClient**. Minecraft starts with the mod loaded.
+
+After that, to get the newest version: **Git → Pull**, then run `runClient` again.
+
+To build the mod file for your modpack, run **Tasks → build → build**. The jar is in
+`build/libs/` (take the one without `-sources`) and goes into the modpack's `mods` folder.
+
+Every push also builds the mod on GitHub. The jar can be downloaded from the
+**Actions** tab, under the latest run, in "Artifacts".
+
+## License
+
+GPL-2.0-only, as the original mod. See [LICENSE](LICENSE).

@@ -1,0 +1,28 @@
+{
+	"schemaVersion": 1,
+	"id": "verticalcut",
+	"version": "${version}",
+	"name": "Vertical Cut",
+	"description": "Shows a vertical cross-section of the terrain in front of you, like an ultrasound scan of the world.",
+	"authors": [
+		"Konitor (Knito58)"
+	],
+	"contact": {
+		"homepage": "https://github.com/Knito58/vertical-cut",
+		"sources": "https://github.com/Knito58/vertical-cut"
+	},
+	"license": "GPL-2.0-only",
+	"icon": "assets/verticalcut/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"de.knito.verticalcut.client.VerticalCutClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
