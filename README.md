@@ -57,4 +57,4 @@ Every push also builds the mod on GitHub. The jar can be downloaded from the
 
 ## License
 
-GPL-2.0-only, as the original mod. See [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE). (The original 1.5–1.6 mod was GPL-2.0; this is a full rewrite.)

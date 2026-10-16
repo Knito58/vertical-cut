@@ -12,7 +12,7 @@
 		"homepage": "https://github.com/Knito58/vertical-cut",
 		"sources": "https://github.com/Knito58/vertical-cut"
 	},
-	"license": "GPL-2.0-only",
+	"license": "MIT",
 	"icon": "assets/verticalcut/icon.png",
 	"environment": "*",
 	"entrypoints": {
