@@ -7,7 +7,13 @@ so you can spot ores, caves and structures without digging.
 This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
 ([old forum page](https://www.minecraftforum.net/forums/mapping-and-modding-java-edition/minecraft-mods/1290593-vertical-cut-find-diamonds-iron-and-dungeons)).
 
-**Status:** skeleton. A placeholder box appears in the top-left corner, and **V** shows or hides it.
+**Status:** first working slice. The cut appears in the top-left corner:
+
+- **V** shows or hides it, **X** cycles through 7 opacity levels, **B** switches zoom 1/2.
+- Ores, spawners and chests have bright colors; other blocks use their map color.
+- The white marker is you; the left edge is 8 blocks behind you.
+
+Keys can be changed in Options → Controls → Key Binds → Vertical Cut.
 
 ## Building and testing (Linux)
 

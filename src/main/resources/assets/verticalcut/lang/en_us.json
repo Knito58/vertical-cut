@@ -1,4 +1,6 @@
 {
 	"key.category.verticalcut.verticalcut": "Vertical Cut",
-	"key.verticalcut.toggle": "Show/hide cut"
+	"key.verticalcut.toggle": "Show/hide cut",
+	"key.verticalcut.opacity": "Change opacity",
+	"key.verticalcut.zoom": "Change zoom"
 }
