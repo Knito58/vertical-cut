@@ -41,6 +41,8 @@ public final class VerticalCutConfig {
 	private static VerticalCutConfig instance;
 
 	public boolean visible = true;
+	/** When on, the cut only works with a fueled CRT in hand. Off = free tool, e.g. for creative mode. */
+	public boolean requireDevice = true;
 	public Corner corner = Corner.TOP_LEFT;
 	/** Distance from the screen edges, in GUI pixels. */
 	public int margin = 4;

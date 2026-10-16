@@ -1,5 +1,7 @@
 package de.knito.verticalcut.client;
 
+import java.util.Random;
+
 import com.mojang.blaze3d.platform.NativeImage;
 
 import net.minecraft.client.Minecraft;
@@ -18,12 +20,15 @@ import de.knito.verticalcut.VerticalCut;
  * recomputed when the player moves to another block, turns noticeably, or a
  * refresh interval passes (to pick up dug or placed blocks). Drawing the
  * finished texture each frame is a single textured quad on the GPU.
+ *
+ * The computed picture is kept in {@link #base}; {@link #present} copies it
+ * into the texture and applies the analog TV effects of a dying CRT.
  */
 final class SliceRenderer {
 	/** Texture size in pixels; the slice is always drawn into this many pixels. */
 	static final int SIZE = 128;
 
-	/** How many blocks of the slice lie behind the player (left edge). */
+	/** How many blocks of the slice lie behind the player (left edge), at 1 pixel per block. */
 	private static final int BEHIND = 8;
 	/** Fraction of the height that lies above the player's feet. */
 	private static final double ABOVE_FRACTION = 0.25;
@@ -36,19 +41,28 @@ final class SliceRenderer {
 
 	final Identifier textureId = VerticalCut.id("slice");
 
+	private final int[] base = new int[SIZE * SIZE];
+	private final Random random = new Random();
+
 	private DynamicTexture texture;
-	private int zoom = 1;
 
 	private BlockPos lastPos;
 	private float lastYaw = Float.NaN;
-	private int lastZoom;
+	private int lastPixelsPerBlock;
+	private boolean lastColor;
 	private int ticksSinceUpdate;
+	private boolean lastNoisy;
 
 	boolean isReady() {
 		return texture != null;
 	}
 
-	void tick(Minecraft client) {
+	/**
+	 * @param pixelsPerBlock 1, 2 or 4
+	 * @param color false draws black and white with ores as bright dots
+	 * @param decay 0 = perfect picture, 1 = almost dead (grey, noisy, jittery)
+	 */
+	void tick(Minecraft client, int pixelsPerBlock, boolean color, float decay) {
 		LocalPlayer player = client.player;
 		ClientLevel level = client.level;
 		if (player == null || level == null) {
@@ -60,34 +74,35 @@ final class SliceRenderer {
 			client.getTextureManager().register(textureId, texture);
 		}
 
-		zoom = VerticalCutConfig.get().zoom;
 		BlockPos pos = player.blockPosition();
 		float yaw = player.getYRot();
 		ticksSinceUpdate++;
 
 		boolean moved = !pos.equals(lastPos);
 		boolean turned = Float.isNaN(lastYaw) || Math.abs(wrapDegrees(yaw - lastYaw)) > TURN_THRESHOLD;
-		if (!moved && !turned && zoom == lastZoom && ticksSinceUpdate < REFRESH_TICKS) {
-			return;
+		boolean modeChanged = pixelsPerBlock != lastPixelsPerBlock || color != lastColor;
+		boolean recompute = moved || turned || modeChanged || ticksSinceUpdate >= REFRESH_TICKS;
+
+		if (recompute) {
+			lastPos = pos;
+			lastYaw = yaw;
+			lastPixelsPerBlock = pixelsPerBlock;
+			lastColor = color;
+			ticksSinceUpdate = 0;
+			compute(level, player, yaw, pixelsPerBlock, color);
 		}
 
-		lastPos = pos;
-		lastYaw = yaw;
-		lastZoom = zoom;
-		ticksSinceUpdate = 0;
-
-		compute(level, player, yaw);
-		texture.upload();
+		// A decaying picture changes every tick (noise), a healthy one only when recomputed.
+		boolean noisy = decay > 0;
+		if (recompute || noisy || lastNoisy) {
+			present(decay);
+		}
+		lastNoisy = noisy;
 	}
 
-	private void compute(ClientLevel level, LocalPlayer player, float yaw) {
-		NativeImage image = texture.getPixels();
-		if (image == null) {
-			return;
-		}
-
-		int blocks = SIZE / zoom;
-		int behind = BEHIND / zoom;
+	private void compute(ClientLevel level, LocalPlayer player, float yaw, int pixelsPerBlock, boolean color) {
+		int blocks = SIZE / pixelsPerBlock;
+		int behind = Math.max(1, BEHIND / pixelsPerBlock);
 		int above = (int) (blocks * ABOVE_FRACTION);
 
 		// Minecraft yaw: 0 = south (+Z), 90 = west (-X).
@@ -110,31 +125,80 @@ final class SliceRenderer {
 
 			for (int row = 0; row < blocks; row++) {
 				int y = feetY + above - row;
-				int color;
+				int argb;
 				if (y < minY || y > maxY) {
-					color = SliceColors.AIR;
+					argb = SliceColors.AIR;
 				} else {
 					cursor.set(x, y, z);
-					color = SliceColors.colorOf(level, cursor, level.getBlockState(cursor));
+					argb = color
+							? SliceColors.colorOf(level, cursor, level.getBlockState(cursor))
+							: SliceColors.monochromeOf(level, cursor, level.getBlockState(cursor));
 				}
-				fill(image, col, row, color);
+				fill(col, row, pixelsPerBlock, argb);
 			}
 		}
 
 		// Mark the player's feet and head.
-		fill(image, behind, above, MARKER_COLOR);
-		fill(image, behind, above - 1, MARKER_COLOR);
+		fill(behind, above, pixelsPerBlock, MARKER_COLOR);
+		fill(behind, above - 1, pixelsPerBlock, MARKER_COLOR);
 	}
 
-	/** Writes one block as a zoom x zoom square of pixels. */
-	private void fill(NativeImage image, int col, int row, int color) {
-		int px = col * zoom;
-		int py = row * zoom;
-		for (int dy = 0; dy < zoom; dy++) {
-			for (int dx = 0; dx < zoom; dx++) {
-				image.setPixel(px + dx, py + dy, color);
+	/** Writes one block as a square of pixels into the base picture. */
+	private void fill(int col, int row, int pixelsPerBlock, int argb) {
+		int px = col * pixelsPerBlock;
+		int py = row * pixelsPerBlock;
+		for (int dy = 0; dy < pixelsPerBlock; dy++) {
+			for (int dx = 0; dx < pixelsPerBlock; dx++) {
+				base[(py + dy) * SIZE + px + dx] = argb;
 			}
 		}
+	}
+
+	/** Copies the base picture into the texture, adding TV decay effects. */
+	private void present(float decay) {
+		NativeImage image = texture.getPixels();
+		if (image == null) {
+			return;
+		}
+
+		for (int y = 0; y < SIZE; y++) {
+			// Lost horizontal sync: some rows slide sideways.
+			int shift = 0;
+			if (decay > 0 && random.nextFloat() < decay * 0.15f) {
+				shift = random.nextInt(9) - 4;
+			}
+			for (int x = 0; x < SIZE; x++) {
+				int sx = Math.floorMod(x + shift, SIZE);
+				int argb = base[y * SIZE + sx];
+				if (decay > 0) {
+					argb = decayPixel(argb, decay);
+				}
+				image.setPixel(x, y, argb);
+			}
+		}
+		texture.upload();
+	}
+
+	/** Drains color and mixes in snow; at full decay the picture is mostly noise. */
+	private int decayPixel(int argb, float decay) {
+		int a = argb >>> 24;
+		int r = (argb >> 16) & 0xFF;
+		int g = (argb >> 8) & 0xFF;
+		int b = argb & 0xFF;
+		int grey = (r * 30 + g * 59 + b * 11) / 100;
+		r += (int) ((grey - r) * decay);
+		g += (int) ((grey - g) * decay);
+		b += (int) ((grey - b) * decay);
+
+		if (random.nextFloat() < decay * 0.6f) {
+			int snow = random.nextInt(256);
+			float mix = decay * 0.8f;
+			r += (int) ((snow - r) * mix);
+			g += (int) ((snow - g) * mix);
+			b += (int) ((snow - b) * mix);
+			a = Math.max(a, (int) (200 * decay));
+		}
+		return (a << 24) | (r << 16) | (g << 8) | b;
 	}
 
 	private static float wrapDegrees(float degrees) {

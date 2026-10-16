@@ -47,6 +47,22 @@ final class SliceColors {
 		}
 	}
 
+	/**
+	 * Black and white picture of the copper CRT: highlighted blocks are
+	 * bright dots, everything else a dim grey, so the player has to read it.
+	 */
+	static int monochromeOf(Level level, BlockPos pos, BlockState state) {
+		if (!state.isAir() && HIGHLIGHTS.containsKey(state.getBlock())) {
+			return 0xFFFFFFFF;
+		}
+		int argb = colorOf(level, pos, state);
+		int r = (argb >> 16) & 0xFF;
+		int g = (argb >> 8) & 0xFF;
+		int b = argb & 0xFF;
+		int grey = (r * 30 + g * 59 + b * 11) / 100 * 2 / 3;
+		return (argb & 0xFF000000) | (grey << 16) | (grey << 8) | grey;
+	}
+
 	static int colorOf(Level level, BlockPos pos, BlockState state) {
 		if (state.isAir()) {
 			return state.is(Blocks.CAVE_AIR) ? CAVE_AIR : AIR;

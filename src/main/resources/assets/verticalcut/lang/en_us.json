@@ -1,5 +1,6 @@
 {
 	"key.category.verticalcut.verticalcut": "Vertical Cut",
+	"item.verticalcut.copper_crt": "Copper CRT",
 	"key.verticalcut.toggle": "Show/hide cut",
 	"key.verticalcut.opacity": "Change opacity",
 	"key.verticalcut.zoom": "Change zoom",
@@ -7,6 +8,7 @@
 
 	"verticalcut.config.title": "Vertical Cut Settings",
 	"verticalcut.config.visible": "Show cut",
+	"verticalcut.config.require_device": "Needs CRT in hand",
 	"verticalcut.config.corner": "Corner",
 	"verticalcut.config.corner.top_left": "Top left",
 	"verticalcut.config.corner.top_right": "Top right",
@@ -15,5 +17,5 @@
 	"verticalcut.config.margin": "Distance from edge: %s",
 	"verticalcut.config.size": "Size: %s",
 	"verticalcut.config.opacity": "Opacity: %s / 7",
-	"verticalcut.config.zoom": "Zoom"
+	"verticalcut.config.zoom": "Zoom (without CRT)"
 }

@@ -5,7 +5,8 @@
 	"name": "Vertical Cut",
 	"description": "Shows a vertical cross-section of the terrain in front of you, like an ultrasound scan of the world.",
 	"authors": [
-		"Konitor (Knito58)"
+		"Claude",
+		"Konitor"
 	],
 	"contact": {
 		"homepage": "https://github.com/Knito58/vertical-cut",
@@ -13,8 +14,11 @@
 	},
 	"license": "GPL-2.0-only",
 	"icon": "assets/verticalcut/icon.png",
-	"environment": "client",
+	"environment": "*",
 	"entrypoints": {
+		"main": [
+			"de.knito.verticalcut.VerticalCutMod"
+		],
 		"client": [
 			"de.knito.verticalcut.client.VerticalCutClient"
 		],

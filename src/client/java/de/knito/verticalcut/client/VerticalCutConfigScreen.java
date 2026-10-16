@@ -31,11 +31,16 @@ public class VerticalCutConfigScreen extends Screen {
 	@Override
 	protected void init() {
 		int x = width / 2 - BUTTON_WIDTH / 2;
-		int y = 40;
+		int y = 36;
 
 		addRenderableWidget(CycleButton.onOffBuilder(config.visible)
 				.create(x, y, BUTTON_WIDTH, 20, Component.translatable("verticalcut.config.visible"),
 						(button, value) -> config.visible = value));
+		y += ROW;
+
+		addRenderableWidget(CycleButton.onOffBuilder(config.requireDevice)
+				.create(x, y, BUTTON_WIDTH, 20, Component.translatable("verticalcut.config.require_device"),
+						(button, value) -> config.requireDevice = value));
 		y += ROW;
 
 		addRenderableWidget(CycleButton.<Corner>builder(

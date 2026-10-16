@@ -7,15 +7,24 @@ so you can spot ores, caves and structures without digging.
 This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
 ([old forum page](https://www.minecraftforum.net/forums/mapping-and-modding-java-edition/minecraft-mods/1290593-vertical-cut-find-diamonds-iron-and-dungeons)).
 
-**Status:** working slice with a settings screen.
+**Status:** Copper CRT (the first scanning device) is in.
 
+- The cut only works while you hold a **Copper CRT** (offhand or main hand). Recipe:
+  ```
+  C G C      C = copper ingot, G = glass pane
+  C R C      R = redstone
+  C T C      T = torch
+  ```
+- The CRT burns coal: one coal or charcoal lasts 4 minutes of scanning and is taken from
+  your inventory automatically when the tank is empty. It only burns while the cut is shown.
+  The durability bar is the fuel gauge. A new CRT starts empty.
+- The Copper CRT shows a black and white picture, 32×32 blocks. Ores are bright dots.
 - **V** shows or hides the cut. That is the only key bound by default.
-- Settings (corner, distance from edge, size, opacity, zoom) are in **Mod Menu → Vertical Cut → Configure**
-  and are saved in `config/verticalcut.json`.
+- Settings (needs CRT on/off, corner, distance from edge, size, opacity, zoom) are in
+  **Mod Menu → Vertical Cut → Configure** and are saved in `config/verticalcut.json`.
+  With "Needs CRT in hand" off, the cut works without a device, in color, at the configured zoom.
 - Keys for opacity, zoom and the settings screen exist but are unbound; bind them in
   Options → Controls → Key Binds → Vertical Cut if you want them.
-- Ores, spawners and chests have bright colors; other blocks use their map color.
-- The white marker is you; the left edge is 8 blocks behind you.
 
 ## Building and testing (Linux)
 
