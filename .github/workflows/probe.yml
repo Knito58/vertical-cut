@@ -1,0 +1,29 @@
+name: probe
+on:
+  push:
+    branches: [api-probe]
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'microsoft'
+      - run: chmod +x ./gradlew && ./gradlew build -q
+      - name: vanilla data
+        run: |
+          M=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-common.jar
+          ls $HOME/.gradle/caches/fabric-loom/26.3/
+          unzip -l $M | grep -E "data/minecraft/(advancement|advancements)/recipes/(tools|combat)/(compass|clock|shield|spyglass)" | head
+          for f in $(unzip -l $M | grep -oE "data/minecraft/[a-z_]+/recipes/tools/(compass|spyglass)\.json"); do echo "=== $f"; unzip -p $M $f; done
+          for f in $(unzip -l $M | grep -oE "data/minecraft/[a-z_]+/(compass|spyglass)\.json"); do echo "=== $f"; unzip -p $M $f; done
+      - name: server
+        run: |
+          mkdir -p run && echo "eula=true" > run/eula.txt
+          (timeout 600 ./gradlew runServer > server.log 2>&1 &)
+          for i in $(seq 1 120); do sleep 5; grep -qE "Done \(|Failed to load|Exception|Stopping server" server.log && break; done
+          sleep 5
+          grep -nE "ERROR|WARN|Exception|Caused|Failed|verticalcut|Done \(" server.log | head -80
+          grep -n -A30 "Failed to load registries\|Errors in registry" server.log | head -120
