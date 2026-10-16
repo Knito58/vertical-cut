@@ -30,7 +30,7 @@ jobs:
           ./gradlew runServer --no-daemon > server.log 2>&1 &
           for i in $(seq 1 120); do
             sleep 5
-            if grep -qE "Done \(|Failed to load|can't proceed|Exception in server tick" server.log; then break; fi
+            if grep -qE "Done \(|Failed to load datapacks|Failed to load registries|Exception in server tick" server.log; then break; fi
           done
           pkill -f runServer || true
           pkill java || true
