@@ -44,15 +44,6 @@ final class SliceRenderer {
 	private int lastZoom;
 	private int ticksSinceUpdate;
 
-	int zoom() {
-		return zoom;
-	}
-
-	/** Cycles zoom between 1 (one pixel per block) and 2 (two pixels per block). */
-	void cycleZoom() {
-		zoom = zoom == 1 ? 2 : 1;
-	}
-
 	boolean isReady() {
 		return texture != null;
 	}
@@ -69,6 +60,7 @@ final class SliceRenderer {
 			client.getTextureManager().register(textureId, texture);
 		}
 
+		zoom = VerticalCutConfig.get().zoom;
 		BlockPos pos = player.blockPosition();
 		float yaw = player.getYRot();
 		ticksSinceUpdate++;

@@ -17,6 +17,9 @@
 	"entrypoints": {
 		"client": [
 			"de.knito.verticalcut.client.VerticalCutClient"
+		],
+		"modmenu": [
+			"de.knito.verticalcut.client.ModMenuIntegration"
 		]
 	},
 	"depends": {
@@ -24,5 +27,8 @@
 		"minecraft": "~26.3",
 		"java": ">=25",
 		"fabric-api": "*"
+	},
+	"suggests": {
+		"modmenu": "*"
 	}
 }

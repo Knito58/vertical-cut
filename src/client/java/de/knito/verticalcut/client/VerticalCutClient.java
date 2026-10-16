@@ -17,17 +17,14 @@ import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import de.knito.verticalcut.VerticalCut;
 
 /**
- * Client entrypoint: key mappings and the HUD element that shows the slice
- * in the top-left corner.
+ * Client entrypoint: key mappings and the HUD element that shows the slice.
  *
- * Keys (changeable in Options, Controls): V shows or hides the cut,
- * X cycles through 7 opacity levels, B switches zoom between 1 and 2.
+ * Only V (show/hide) is bound by default. Opacity, zoom and the settings
+ * screen have keys without a default binding; players who want them can
+ * bind them in Options, Controls. Everything else is in the settings
+ * screen, reachable through Mod Menu.
  */
 public class VerticalCutClient implements ClientModInitializer {
-	private static final int BOX_X = 4;
-	private static final int BOX_Y = 4;
-	private static final int OPACITY_LEVELS = 7;
-
 	private static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(VerticalCut.id("verticalcut"));
 
 	private static final SliceRenderer SLICE = new SliceRenderer();
@@ -35,28 +32,37 @@ public class VerticalCutClient implements ClientModInitializer {
 	private static KeyMapping toggleKey;
 	private static KeyMapping opacityKey;
 	private static KeyMapping zoomKey;
-
-	private static boolean visible = true;
-	/** 1..OPACITY_LEVELS; the highest level also draws a solid background. */
-	private static int opacity = OPACITY_LEVELS - 1;
+	private static KeyMapping settingsKey;
 
 	@Override
 	public void onInitializeClient() {
 		toggleKey = register("key.verticalcut.toggle", InputConstants.KEY_V);
-		opacityKey = register("key.verticalcut.opacity", InputConstants.KEY_X);
-		zoomKey = register("key.verticalcut.zoom", InputConstants.KEY_B);
+		opacityKey = register("key.verticalcut.opacity", InputConstants.UNKNOWN.getValue());
+		zoomKey = register("key.verticalcut.zoom", InputConstants.UNKNOWN.getValue());
+		settingsKey = register("key.verticalcut.settings", InputConstants.UNKNOWN.getValue());
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
+			VerticalCutConfig config = VerticalCutConfig.get();
+			boolean changed = false;
 			while (toggleKey.consumeClick()) {
-				visible = !visible;
+				config.visible = !config.visible;
+				changed = true;
 			}
 			while (opacityKey.consumeClick()) {
-				opacity = opacity % OPACITY_LEVELS + 1;
+				config.opacity = config.opacity % VerticalCutConfig.OPACITY_LEVELS + 1;
+				changed = true;
 			}
 			while (zoomKey.consumeClick()) {
-				SLICE.cycleZoom();
+				config.zoom = config.zoom == 1 ? 2 : 1;
+				changed = true;
 			}
-			if (visible) {
+			if (changed) {
+				config.save();
+			}
+			while (settingsKey.consumeClick()) {
+				client.gui.setScreen(new VerticalCutConfigScreen(null));
+			}
+			if (config.visible) {
 				SLICE.tick(client);
 			}
 		});
@@ -72,23 +78,27 @@ public class VerticalCutClient implements ClientModInitializer {
 
 	private static void extract(GuiGraphicsExtractor graphics, DeltaTracker tickCounter) {
 		Minecraft client = Minecraft.getInstance();
-		if (!visible || client.player == null || !SLICE.isReady()) {
+		VerticalCutConfig config = VerticalCutConfig.get();
+		if (!config.visible || client.player == null || !SLICE.isReady()) {
 			return;
 		}
 
-		int size = SliceRenderer.SIZE;
-		int alpha = 255 * opacity / OPACITY_LEVELS;
+		int size = config.size;
+		int x = config.corner.right() ? graphics.guiWidth() - config.margin - size : config.margin;
+		int y = config.corner.bottom() ? graphics.guiHeight() - config.margin - size : config.margin;
+		int alpha = 255 * config.opacity / VerticalCutConfig.OPACITY_LEVELS;
 
-		if (opacity == OPACITY_LEVELS) {
-			graphics.fill(BOX_X, BOX_Y, BOX_X + size, BOX_Y + size, 0xFF203060);
+		if (config.opacity == VerticalCutConfig.OPACITY_LEVELS) {
+			graphics.fill(x, y, x + size, y + size, 0xFF203060);
 		} else {
-			graphics.fill(BOX_X, BOX_Y, BOX_X + size, BOX_Y + size, (alpha / 3) << 24);
+			graphics.fill(x, y, x + size, y + size, (alpha / 3) << 24);
 		}
 
-		graphics.blit(RenderPipelines.GUI_TEXTURED, SLICE.textureId, BOX_X, BOX_Y, 0, 0, size, size, size, size,
+		int tex = SliceRenderer.SIZE;
+		graphics.blit(RenderPipelines.GUI_TEXTURED, SLICE.textureId, x, y, 0, 0, size, size, tex, tex, tex, tex,
 				(alpha << 24) | 0xFFFFFF);
 
-		graphics.outline(BOX_X - 1, BOX_Y - 1, size + 2, size + 2, 0xFFAAAAAA);
-		graphics.text(client.font, "x" + SLICE.zoom(), BOX_X + 3, BOX_Y + size - 11, 0xFFFFFFFF, true);
+		graphics.outline(x - 1, y - 1, size + 2, size + 2, 0xFFAAAAAA);
+		graphics.text(client.font, "x" + config.zoom, x + 3, y + size - 11, 0xFFFFFFFF, true);
 	}
 }
