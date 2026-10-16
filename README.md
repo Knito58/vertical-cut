@@ -15,6 +15,7 @@ This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
   C R C      R = redstone
   C T C      T = torch
   ```
+  The recipe appears in the recipe book once you pick up a copper ingot.
 - The CRT burns coal: one coal or charcoal lasts 4 minutes of scanning (adjustable from
   60 to 600 seconds in the settings; on a server, the server's setting counts) and is taken from
   your inventory automatically when the tank is empty. It only burns while the cut is shown.

@@ -23,6 +23,23 @@ jobs:
         run: chmod +x ./gradlew
       - name: build
         run: ./gradlew build
+      - name: start a server to check the mod's data files
+        # Recipes, advancements etc. are only checked when a world loads, not by the build.
+        run: |
+          mkdir -p run && echo "eula=true" > run/eula.txt
+          ./gradlew runServer --no-daemon > server.log 2>&1 &
+          for i in $(seq 1 120); do
+            sleep 5
+            if grep -qE "Done \(|Failed to load|can't proceed|Exception in server tick" server.log; then break; fi
+          done
+          pkill -f runServer || true
+          pkill java || true
+          if ! grep -q "Done (" server.log; then
+            grep -nE -A20 "ERROR|Failed" server.log | head -150
+            echo "::error::The server did not start with the mod loaded"
+            exit 1
+          fi
+          echo "Server started fine"
       - name: capture build artifacts
         uses: actions/upload-artifact@v7
         with:
