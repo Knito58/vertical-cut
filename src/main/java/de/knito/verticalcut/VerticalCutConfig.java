@@ -57,6 +57,8 @@ public final class VerticalCutConfig {
 	public int secondsPerCoal = 240;
 	/** 1 = one pixel per block, 2 = two pixels per block. */
 	public int zoom = 1;
+	/** Gulp and burp when the CRT swallows a coal. Client only. */
+	public boolean sounds = true;
 
 	public static VerticalCutConfig get() {
 		if (instance == null) {

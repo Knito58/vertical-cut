@@ -8,6 +8,8 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 
+import de.knito.verticalcut.VerticalCutConfig;
+
 /**
  * The CRT's personality: the hiccup when it swallows a coal, and the
  * old-TV switch-off when the fuel runs out. Watches the fuel level once per
@@ -72,6 +74,9 @@ final class CrtEffects {
 	}
 
 	private static void play(Minecraft client, SoundEvent sound, float pitch, float volume) {
+		if (!VerticalCutConfig.get().sounds) {
+			return;
+		}
 		client.getSoundManager().play(SimpleSoundInstance.forUI(sound, pitch, volume));
 	}
 

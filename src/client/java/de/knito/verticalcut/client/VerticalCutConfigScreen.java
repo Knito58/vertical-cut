@@ -19,7 +19,7 @@ import de.knito.verticalcut.VerticalCutConfig.Corner;
  */
 public class VerticalCutConfigScreen extends Screen {
 	private static final int BUTTON_WIDTH = 200;
-	private static final int ROW = 24;
+	private static final int ROW = 22;
 
 	private final Screen parent;
 	private final VerticalCutConfig config = VerticalCutConfig.get();
@@ -32,7 +32,7 @@ public class VerticalCutConfigScreen extends Screen {
 	@Override
 	protected void init() {
 		int x = width / 2 - BUTTON_WIDTH / 2;
-		int y = 36;
+		int y = 30;
 
 		addRenderableWidget(CycleButton.onOffBuilder(config.visible)
 				.create(x, y, BUTTON_WIDTH, 20, Component.translatable("verticalcut.config.visible"),
@@ -64,12 +64,17 @@ public class VerticalCutConfigScreen extends Screen {
 				config.opacity, value -> config.opacity = value));
 		y += ROW;
 
+		addRenderableWidget(CycleButton.onOffBuilder(config.sounds)
+				.create(x, y, BUTTON_WIDTH, 20, Component.translatable("verticalcut.config.sounds"),
+						(button, value) -> config.sounds = value));
+		y += ROW;
+
 		addRenderableWidget(new IntSlider(x, y, "verticalcut.config.seconds_per_coal",
 				VerticalCutConfig.MIN_SECONDS_PER_COAL, VerticalCutConfig.MAX_SECONDS_PER_COAL, 10,
 				config.secondsPerCoal, value -> config.secondsPerCoal = value));
 		y += ROW;
 
-		addRenderableWidget(CycleButton.<Integer>builder(zoom -> Component.literal(zoom + "x"), config.zoom)
+		addRenderableWidget(CycleButton.<Integer>builder(zoom -> Component.translatable("verticalcut.config.zoom.value", zoom), config.zoom)
 				.withValues(1, 2)
 				.create(x, y, BUTTON_WIDTH, 20, Component.translatable("verticalcut.config.zoom"),
 						(button, value) -> config.zoom = value));

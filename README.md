@@ -15,17 +15,25 @@ This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
   C R C      R = redstone
   C T C      T = torch
   ```
+  The recipe appears in the recipe book once you pick up a copper ingot.
 - The CRT burns coal: one coal or charcoal lasts 4 minutes of scanning (adjustable from
   60 to 600 seconds in the settings; on a server, the server's setting counts) and is taken from
   your inventory automatically when the tank is empty. It only burns while the cut is shown.
   The durability bar is the fuel gauge. A new CRT starts empty.
 - The Copper CRT shows a black and white picture, 32×32 blocks. Ores are bright dots.
 - **V** shows or hides the cut. That is the only key bound by default.
-- Settings (needs CRT on/off, corner, distance from edge, size, opacity, zoom) are in
+- Settings (needs CRT on/off, corner, distance from edge, size, opacity, CRT sounds,
+  seconds per coal, zoom) are in
   **Mod Menu → Vertical Cut → Configure** and are saved in `config/verticalcut.json`.
   With "Needs CRT in hand" off, the cut works without a device, in color, at the configured zoom.
 - Keys for opacity, zoom and the settings screen exist but are unbound; bind them in
   Options → Controls → Key Binds → Vertical Cut if you want them.
+
+## Translations
+
+All player-facing text is in `src/main/resources/assets/verticalcut/lang/en_us.json`.
+To translate, copy it to your language code (for example `de_de.json`), translate the
+values and keep the keys and `%s` placeholders as they are.
 
 ## Building and testing (Linux)
 
