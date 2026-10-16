@@ -8,13 +8,15 @@ import net.minecraft.world.item.ItemStack;
  * The CRT ("Coal-powered Rock Tomograph"). Its fuel is stored as item
  * damage, so the vanilla durability bar doubles as a fuel gauge:
  * damage 0 is a full tank, damage {@link #EMPTY} is empty. The damage never
- * reaches the maximum, so the item can't break.
+ * reaches the maximum, so the item can't break. A new CRT starts empty.
+ *
+ * One coal fills {@link #FUEL_UNITS} units; how fast they burn depends on
+ * the configured seconds per coal.
  */
 public class CrtItem extends Item {
-	/** Seconds of scanning one coal provides. */
-	public static final int FUEL_SECONDS = 240;
-	public static final int EMPTY = FUEL_SECONDS;
-	public static final int MAX_DAMAGE = FUEL_SECONDS + 1;
+	public static final int FUEL_UNITS = 240;
+	public static final int EMPTY = FUEL_UNITS;
+	public static final int MAX_DAMAGE = FUEL_UNITS + 1;
 
 	public final CrtTier tier;
 
@@ -27,8 +29,8 @@ public class CrtItem extends Item {
 		return Math.max(0, EMPTY - stack.getDamageValue());
 	}
 
-	public static void setFuel(ItemStack stack, int seconds) {
-		stack.setDamageValue(EMPTY - Math.clamp(seconds, 0, FUEL_SECONDS));
+	public static void setFuel(ItemStack stack, int units) {
+		stack.setDamageValue(EMPTY - Math.clamp(units, 0, FUEL_UNITS));
 	}
 
 	/** The CRT the player holds, offhand first, or {@link ItemStack#EMPTY}. */

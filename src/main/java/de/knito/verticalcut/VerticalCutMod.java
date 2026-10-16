@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -60,15 +61,23 @@ public class VerticalCutMod implements ModInitializer {
 		Item.Properties properties = new Item.Properties()
 				.setId(key)
 				.stacksTo(1)
-				.durability(CrtItem.MAX_DAMAGE);
+				.durability(CrtItem.MAX_DAMAGE)
+				.component(DataComponents.DAMAGE, CrtItem.EMPTY);
 		CrtItem item = new CrtItem(tier, properties);
 		Registry.register(BuiltInRegistries.ITEM, key, item);
 		return item;
 	}
 
-	/** Once per second: burn one second of fuel for every scanning player, refuel from coal when empty. */
+	/**
+	 * Burns one fuel unit for every scanning player at a pace that empties a
+	 * full tank in the configured seconds per coal, and refuels from coal.
+	 */
 	private static void tick(MinecraftServer server) {
-		if (server.getTickCount() % 20 != 0) {
+		// Spread FUEL_UNITS evenly over the configured time. A coal lasts at
+		// least 60 s = 1200 ticks, so this burns at most one unit per tick.
+		long ticksPerCoal = VerticalCutConfig.get().secondsPerCoal * 20L;
+		long now = server.getTickCount();
+		if (now * CrtItem.FUEL_UNITS / ticksPerCoal == (now - 1) * CrtItem.FUEL_UNITS / ticksPerCoal) {
 			return;
 		}
 		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
@@ -83,7 +92,7 @@ public class VerticalCutMod implements ModInitializer {
 			// "1 -> full" (hiccup) with coal, and "1 -> 0" (switch-off) only without.
 			int fuel = Math.max(0, CrtItem.fuel(crt) - 1);
 			if (fuel == 0 && eatCoal(player)) {
-				fuel = CrtItem.FUEL_SECONDS;
+				fuel = CrtItem.FUEL_UNITS;
 			}
 			CrtItem.setFuel(crt, fuel);
 		}

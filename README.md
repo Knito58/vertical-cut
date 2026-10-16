@@ -15,7 +15,8 @@ This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
   C R C      R = redstone
   C T C      T = torch
   ```
-- The CRT burns coal: one coal or charcoal lasts 4 minutes of scanning and is taken from
+- The CRT burns coal: one coal or charcoal lasts 4 minutes of scanning (adjustable from
+  60 to 600 seconds in the settings; on a server, the server's setting counts) and is taken from
   your inventory automatically when the tank is empty. It only burns while the cut is shown.
   The durability bar is the fuel gauge. A new CRT starts empty.
 - The Copper CRT shows a black and white picture, 32×32 blocks. Ores are bright dots.

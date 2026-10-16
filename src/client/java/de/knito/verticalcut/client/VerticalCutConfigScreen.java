@@ -10,7 +10,8 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 
-import de.knito.verticalcut.client.VerticalCutConfig.Corner;
+import de.knito.verticalcut.VerticalCutConfig;
+import de.knito.verticalcut.VerticalCutConfig.Corner;
 
 /**
  * Settings screen, reachable from Mod Menu or an optional key. Changes take
@@ -63,6 +64,11 @@ public class VerticalCutConfigScreen extends Screen {
 				config.opacity, value -> config.opacity = value));
 		y += ROW;
 
+		addRenderableWidget(new IntSlider(x, y, "verticalcut.config.seconds_per_coal",
+				VerticalCutConfig.MIN_SECONDS_PER_COAL, VerticalCutConfig.MAX_SECONDS_PER_COAL, 10,
+				config.secondsPerCoal, value -> config.secondsPerCoal = value));
+		y += ROW;
+
 		addRenderableWidget(CycleButton.<Integer>builder(zoom -> Component.literal(zoom + "x"), config.zoom)
 				.withValues(1, 2)
 				.create(x, y, BUTTON_WIDTH, 20, Component.translatable("verticalcut.config.zoom"),
@@ -86,24 +92,34 @@ public class VerticalCutConfigScreen extends Screen {
 		minecraft.gui.setScreen(parent);
 	}
 
-	/** A slider over a whole-number range that writes its value back on every change. */
+	/**
+	 * A slider over a whole-number range that writes its value back on every
+	 * change. Values snap to multiples of {@code step} above {@code min}.
+	 */
 	private static class IntSlider extends AbstractSliderButton {
 		private final String translationKey;
 		private final int min;
 		private final int max;
+		private final int step;
 		private final IntConsumer setter;
 
 		IntSlider(int x, int y, String translationKey, int min, int max, int current, IntConsumer setter) {
+			this(x, y, translationKey, min, max, 1, current, setter);
+		}
+
+		IntSlider(int x, int y, String translationKey, int min, int max, int step, int current, IntConsumer setter) {
 			super(x, y, BUTTON_WIDTH, 20, Component.empty(), (double) (current - min) / (max - min));
 			this.translationKey = translationKey;
 			this.min = min;
 			this.max = max;
+			this.step = step;
 			this.setter = setter;
 			updateMessage();
 		}
 
 		private int intValue() {
-			return min + (int) Math.round(value * (max - min));
+			int steps = (int) Math.round(value * (max - min) / step);
+			return Math.min(max, min + steps * step);
 		}
 
 		@Override

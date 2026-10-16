@@ -27,6 +27,7 @@ import de.knito.verticalcut.CrtItem;
 import de.knito.verticalcut.CrtTier;
 import de.knito.verticalcut.ScanStatePayload;
 import de.knito.verticalcut.VerticalCut;
+import de.knito.verticalcut.VerticalCutConfig;
 
 /**
  * Client entrypoint: key mappings, deciding what the cut may show (depends on
@@ -109,7 +110,7 @@ public class VerticalCutClient implements ClientModInitializer {
 		EFFECTS.tick(client, fuel);
 		CrtTier tier = ((CrtItem) crt.getItem()).tier;
 
-		float share = (float) fuel / CrtItem.FUEL_SECONDS;
+		float share = (float) fuel / CrtItem.FUEL_UNITS;
 		decay = fuel == 0 ? 1f : Math.max(0f, 1f - share / DECAY_START);
 		showing = fuel > 0 || EFFECTS.dying();
 		boolean noSpare = !client.player.getAbilities().instabuild && !hasCoal(client.player);
@@ -222,18 +223,24 @@ public class VerticalCutClient implements ClientModInitializer {
 	}
 
 	/**
-	 * Old tube TV switching off: the picture collapses into a bright
-	 * horizontal line, the line shrinks to a dot, the dot fades away.
+	 * Old tube TV switching off: the frame stays, only the picture inside
+	 * collapses into a bright horizontal line, the line shrinks to a dot, the
+	 * dot fades away. The frame matches the out-of-coal screen that follows.
 	 */
 	private static void drawDeath(GuiGraphicsExtractor graphics, int cx, int cy, int size, float t) {
+		int x = cx - size / 2;
+		int y = cy - size / 2;
+		graphics.fill(x, y, x + size, y + size, 0xC0101010);
+		graphics.outline(x - 1, y - 1, size + 2, size + 2, 0xFF666666);
+
 		if (t < 0.35f) {
 			float p = t / 0.35f;
 			int h = Math.max(2, Math.round(size * (1 - p * p)));
 			int glow = (int) (255 * p);
 			int tex = SliceRenderer.SIZE;
-			graphics.blit(RenderPipelines.GUI_TEXTURED, SLICE.textureId, cx - size / 2, cy - h / 2, 0, 0, size, h,
+			graphics.blit(RenderPipelines.GUI_TEXTURED, SLICE.textureId, x, cy - h / 2, 0, 0, size, h,
 					tex, tex, tex, tex, 0xFFFFFFFF);
-			graphics.fill(cx - size / 2, cy - h / 2, cx + size / 2, cy - h / 2 + h, (glow << 24) | 0xFFFFFF);
+			graphics.fill(x, cy - h / 2, x + size, cy - h / 2 + h, (glow << 24) | 0xFFFFFF);
 		} else if (t < 0.6f) {
 			float p = (t - 0.35f) / 0.25f;
 			int w = Math.max(2, Math.round(size * (1 - p * p)));

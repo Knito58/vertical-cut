@@ -17,5 +17,6 @@
 	"verticalcut.config.margin": "Distance from edge: %s",
 	"verticalcut.config.size": "Size: %s",
 	"verticalcut.config.opacity": "Opacity: %s / 7",
+	"verticalcut.config.seconds_per_coal": "Seconds per coal: %s",
 	"verticalcut.config.zoom": "Zoom (without CRT)"
 }
