@@ -9,7 +9,11 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -49,6 +53,10 @@ public class VerticalCutClient implements ClientModInitializer {
 	/** What the HUD should draw this tick, decided in the client tick. */
 	private static boolean showing;
 	private static float decay;
+	/** Tank empty and nothing to refill: show a dark frame with a blinking coal. */
+	private static boolean outOfCoal;
+	/** Picture is decaying and there is no spare coal: small coal warning in the corner. */
+	private static boolean lowOnCoal;
 	/** Last scanning state sent to the server; null = send again. */
 	private static Boolean sentScanning;
 
@@ -74,6 +82,8 @@ public class VerticalCutClient implements ClientModInitializer {
 
 		showing = false;
 		decay = 0;
+		outOfCoal = false;
+		lowOnCoal = false;
 		if (client.player == null) {
 			return;
 		}
@@ -102,10 +112,23 @@ public class VerticalCutClient implements ClientModInitializer {
 		float share = (float) fuel / CrtItem.FUEL_SECONDS;
 		decay = fuel == 0 ? 1f : Math.max(0f, 1f - share / DECAY_START);
 		showing = fuel > 0 || EFFECTS.dying();
+		boolean noSpare = !client.player.getAbilities().instabuild && !hasCoal(client.player);
+		outOfCoal = fuel == 0 && !EFFECTS.dying() && noSpare;
+		lowOnCoal = decay > 0 && noSpare;
 		if (showing) {
 			int pixelsPerBlock = tier.switchableZoom ? config.zoom : tier.pixelsPerBlock;
 			SLICE.tick(client, pixelsPerBlock, tier.color, decay);
 		}
+	}
+
+	private static boolean hasCoal(Player player) {
+		Inventory inventory = player.getInventory();
+		for (int i = 0; i < inventory.getContainerSize(); i++) {
+			if (inventory.getItem(i).is(ItemTags.COALS)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static void handleKeys(Minecraft client, VerticalCutConfig config) {
@@ -142,7 +165,7 @@ public class VerticalCutClient implements ClientModInitializer {
 
 	private static void extract(GuiGraphicsExtractor graphics, DeltaTracker tickCounter) {
 		Minecraft client = Minecraft.getInstance();
-		if (!showing || client.player == null || !SLICE.isReady()) {
+		if (client.player == null || !(showing && SLICE.isReady() || outOfCoal)) {
 			return;
 		}
 
@@ -152,6 +175,17 @@ public class VerticalCutClient implements ClientModInitializer {
 		int y = config.corner.bottom() ? graphics.guiHeight() - config.margin - size : config.margin;
 		int cx = x + size / 2;
 		int cy = y + size / 2;
+		boolean blinkOn = (System.currentTimeMillis() / 500) % 2 == 0;
+
+		if (outOfCoal) {
+			// Dead screen with a blinking "feed me" coal in the middle.
+			graphics.fill(x, y, x + size, y + size, 0xC0101010);
+			graphics.outline(x - 1, y - 1, size + 2, size + 2, 0xFF666666);
+			if (blinkOn) {
+				graphics.item(new ItemStack(Items.COAL), cx - 8, cy - 8);
+			}
+			return;
+		}
 		int alpha = 255 * config.opacity / VerticalCutConfig.OPACITY_LEVELS;
 
 		float death = EFFECTS.deathProgress();
@@ -181,6 +215,10 @@ public class VerticalCutClient implements ClientModInitializer {
 		graphics.blit(RenderPipelines.GUI_TEXTURED, SLICE.textureId, sx, sy, 0, 0, shown, shown, tex, tex, tex, tex,
 				(alpha << 24) | 0xFFFFFF);
 		graphics.outline(sx - 1, sy - 1, shown + 2, shown + 2, 0xFFAAAAAA);
+
+		if (lowOnCoal && blinkOn) {
+			graphics.item(new ItemStack(Items.COAL), sx + shown - 18, sy + 2);
+		}
 	}
 
 	/**
