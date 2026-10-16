@@ -34,7 +34,6 @@ public class VerticalCutClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		toggleKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
 				"key.verticalcut.toggle",
-				InputConstants.Type.KEYSYM,
 				InputConstants.KEY_V,
 				CATEGORY));
 
