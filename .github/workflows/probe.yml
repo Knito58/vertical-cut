@@ -18,11 +18,7 @@ jobs:
           C=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-client-only.jar
           p() { echo "=== $1"; javap -cp "$C:$M" "$1" 2>&1 | grep -v 'lambda\$' | grep -vE "^\s*$" | head -${2:-80} || true; }
           set +e +o pipefail
-          javap -c -p -cp "$M" net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity | grep -n -B3 -A25 "LootContext" | head -120
-          javap -c -p -cp "$M" net.minecraft.world.inventory.FurnaceFuelSlot | grep -A20 "isFuel" | head -30
-          p 'net.minecraft.world.level.storage.loot.LootContext$Builder' 30
-          p 'net.minecraft.world.level.storage.loot.LootParams$Builder' 30
-          p net.minecraft.world.level.storage.loot.parameters.LootContextParamSets 60
-          p net.minecraft.world.item.component.CookingFuel 30
-          javap -c -p -cp "$M" net.minecraft.world.item.Items | grep -n -B6 -A6 "COOKING_FUEL" | head -60
-          javap -c -p -cp "$M" net.minecraft.world.level.block.entity.HopperBlockEntity | grep -n -B5 -A10 "COOKING_FUEL\|isFuel" | head -40
+          javap -c -p -cp "$M" net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity | grep -A45 "LootContext getLootContext(" | head -50
+          javap -c -p -cp "$M" net.minecraft.world.inventory.AbstractFurnaceMenu | grep -A25 "boolean isFuel" | head -30
+          javap -c -p -cp "$M" net.minecraft.world.level.storage.loot.parameters.LootContextParamSets | grep -B2 -A30 "CONTAINER_PROCESS" | grep -A30 "putstatic.*BLOCK_INTERACT\|ldc.*container_process" | head -40
+          javap -c -p -cp "$M" net.minecraft.world.level.storage.loot.parameters.LootContextParamSets | grep -B25 "putstatic.*CONTAINER_PROCESS" | head -30
