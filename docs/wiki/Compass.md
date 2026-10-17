@@ -2,6 +2,10 @@
 
 A compass in a module slot. It holds the cut in one direction.
 
+| Locked at 168°, needle green | The CRT's antennas light up |
+|---|---|
+| ![The picture with the green needle and the bearing 168° at the top](images/compass.png) | ![The CRT in hand with green antennas](images/compass-antennas.png) |
+
 ## What it does
 - **K** locks the cut in the direction you look, at any angle (a diagonal tunnel works).
   **K** again lets it follow your view.
