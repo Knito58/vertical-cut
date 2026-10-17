@@ -2,7 +2,7 @@ package de.knito.verticalcut.client;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.entity.monster.EnderMan;
+import net.minecraft.world.entity.monster.Enderman;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -53,9 +53,9 @@ final class Interference {
 	/** The nearest enderman counts; an angry one twice as much. */
 	private static float endermen(Minecraft client) {
 		Vec3 eyes = client.player.getEyePosition();
-		EnderMan nearest = null;
+		Enderman nearest = null;
 		double distance = Double.MAX_VALUE;
-		for (EnderMan enderman : client.level.getEntitiesOfClass(EnderMan.class,
+		for (Enderman enderman : client.level.getEntitiesOfClass(Enderman.class,
 				new AABB(eyes, eyes).inflate(ENDERMAN_RANGE))) {
 			double d = eyes.distanceTo(enderman.getEyePosition());
 			if (d < distance) {
