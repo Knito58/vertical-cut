@@ -18,12 +18,8 @@ jobs:
           C=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-client-only.jar
           p() { echo "=== $1"; javap -cp "$C:$M" "$1" 2>&1 | grep -v 'lambda\$' | grep -vE "^\s*$" | head -${2:-80} || true; }
           set +e +o pipefail
-          unzip -l $M | grep -i fuel | head -20
-          javap -cp "$M" net.minecraft.core.component.DataComponents | grep -i fuel
-          javap -p -cp "$M" net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity | grep -iE "fuel|burn"
-          javap -cp "$M" net.minecraft.tags.ItemTags | grep -i fuel
-          unzip -l $M | grep -iE "data/minecraft/.*fuel" | head
-          javap -cp "$M" net.minecraft.world.inventory.ContainerInput | head -20
-          javap -cp "$M" net.minecraft.world.item.ItemStackTemplate | head -3
-          javap -cp "$M" net.minecraft.world.level.Level | grep -iE "registryAccess|fuel"
+          javap -p -cp "$M" net.minecraft.world.item.component.CookingFuel
+          javap -c -p -cp "$M" net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity | grep -A30 "int getBurnDuration" | head -40
+          javap -cp "$M" net.minecraft.world.item.Items | grep -iE " BUCKET;| LAVA_BUCKET;"
+          unzip -p $M data/minecraft/tags/item/furnace_fuel_bottom_takeable.json
           for f in $(find $HOME/.gradle/caches -name "fabric-item-api-v1*.jar" | head -1); do unzip -l $f | grep -i tooltip; done
