@@ -65,20 +65,6 @@ final class SliceColors {
 	private SliceColors() {
 	}
 
-	/** Ores, spawners and chests: what a thick slice also shows beside the cut (torches don't count). */
-	static boolean isFind(BlockState state) {
-		return !state.isAir() && HIGHLIGHTS.containsKey(state.getBlock())
-				&& !state.is(Blocks.TORCH) && !state.is(Blocks.WALL_TORCH);
-	}
-
-	/** The same color a bit darker, for finds beside the cut. */
-	static int darker(int argb) {
-		int r = ((argb >> 16) & 0xFF) * 3 / 5;
-		int g = ((argb >> 8) & 0xFF) * 3 / 5;
-		int b = (argb & 0xFF) * 3 / 5;
-		return (argb & 0xFF000000) | (r << 16) | (g << 8) | b;
-	}
-
 	private static void put(int color, Block... blocks) {
 		for (Block block : blocks) {
 			HIGHLIGHTS.put(block, color);

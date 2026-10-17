@@ -38,10 +38,8 @@ This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
   back out to 64×64 (with a moment of snow and a click; the step is remembered). Smithing
   table: torch + Iron CRT + Gold Picture Tube, made like the iron tube from 8 gold ingots
   and a redstone torch.
-- **Diamond CRT**, the upgrade after Gold: 3 module slots, **B** steps through 32×32, 64×64
-  and 128×128 blocks, and the picture is 5 blocks thick: ores, spawners and chests up to 2
-  blocks beside the cut show too, a little darker than those right in the cut (the finder
-  flashes them as well). Smithing table: torch + Gold CRT + Diamond Picture Tube, made from
+- **Diamond CRT**, the upgrade after Gold: 3 module slots, and **B** steps through 32×32,
+  64×64 and 128×128 blocks. Smithing table: torch + Gold CRT + Diamond Picture Tube, made from
   8 diamonds around a redstone torch.
 - Recipes appear in the recipe book when you pick up cobblestone, a copper, iron or gold ingot, a diamond, or the
   CRT to be upgraded.
