@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
@@ -43,7 +44,7 @@ record Finder(Set<Block> blocks, Set<TagKey<Block>> oreTags) {
 				Blocks.RAW_GOLD_BLOCK);
 		put(coal, Items.COAL, Items.COAL_BLOCK);
 		put(iron, Items.RAW_IRON, Items.IRON_INGOT, Items.IRON_NUGGET, Items.IRON_BLOCK);
-		put(copper, Items.RAW_COPPER, Items.COPPER_INGOT, Items.COPPER_NUGGET, Items.COPPER_BLOCK);
+		put(copper, Items.RAW_COPPER, Items.COPPER_INGOT, Items.COPPER_NUGGET);
 		put(gold, Items.RAW_GOLD, Items.GOLD_INGOT, Items.GOLD_NUGGET, Items.GOLD_BLOCK);
 		put(List.of(Blocks.REDSTONE_ORE, Blocks.DEEPSLATE_REDSTONE_ORE), Items.REDSTONE, Items.REDSTONE_BLOCK);
 		put(List.of(Blocks.LAPIS_ORE, Blocks.DEEPSLATE_LAPIS_ORE), Items.LAPIS_LAZULI, Items.LAPIS_BLOCK);
@@ -68,7 +69,7 @@ record Finder(Set<Block> blocks, Set<TagKey<Block>> oreTags) {
 		Set<TagKey<Block>> oreTags = new HashSet<>();
 		for (ItemStack sample : samples) {
 			blocks.addAll(SAMPLES.getOrDefault(sample.getItem(), List.of()));
-			sample.getTags().forEach(tag -> {
+			BuiltInRegistries.ITEM.wrapAsHolder(sample.getItem()).tags().forEach(tag -> {
 				Identifier id = tag.location();
 				String[] parts = id.getPath().split("/", 2);
 				if (id.getNamespace().equals("c") && parts.length == 2 && MATERIAL_TAGS.contains(parts[0])) {
