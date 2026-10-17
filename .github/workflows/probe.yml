@@ -6,11 +6,21 @@ jobs:
   probe:
     runs-on: ubuntu-24.04
     steps:
-      - name: modrinth
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'microsoft'
+      - run: chmod +x ./gradlew && ./gradlew build -q
+      - name: probe
         run: |
           set +e +o pipefail
-          for slug in metal-bundles puzzles-lib forge-config-api-port; do
-            curl -sS -G "https://api.modrinth.com/v2/project/$slug/version" --data-urlencode 'loaders=["fabric"]' --data-urlencode 'game_versions=["26.3"]' | jq -r --arg s $slug '.[0] | "\($s) | \(.version_number) | \(.id) | \(.files[0].filename) | \([.dependencies[] | select(.dependency_type=="required") | .project_id] | join(","))"'
+          M=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-common.jar
+          C=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-client-only.jar
+          javap -p -cp "$M" net.minecraft.world.inventory.Slot | grep -E " (x|y|index);"
+          javap -p -cp "$C:$M" net.minecraft.client.gui.screens.inventory.AbstractContainerScreen | grep -E "imageHeight|inventoryLabelY|titleLabelY|init\(|extractLabels"
+          javap -p -cp "$C:$M" net.minecraft.client.gui.Font | grep -E "split|wordWrapHeight|width\(" | head
+          for slug in jei; do
+            curl -sS -G "https://api.modrinth.com/v2/project/$slug/version" --data-urlencode 'loaders=["fabric"]' --data-urlencode 'game_versions=["26.3"]' | jq -r '.[0:3][] | "\(.version_number) | \(.id) | \(.files[0].filename) | \(.date_published)"'
           done
-          curl -sS https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/maven-metadata.xml | grep -o "<version>[^<]*26.3[^<]*</version>" | tail -5
-          curl -sS https://maven.fabricmc.net/net/fabricmc/fabric-loader/maven-metadata.xml | grep -o "<latest>[^<]*</latest>"
+          curl -sS https://maven.blamejared.com/mezz/jei/ 2>/dev/null | grep -o 'jei-26[^/"]*' | sort -u | tail
