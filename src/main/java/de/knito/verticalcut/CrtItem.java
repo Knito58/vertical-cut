@@ -14,6 +14,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.Level;
 
@@ -92,6 +93,11 @@ public class CrtItem extends Item {
 		return modules.stream().anyMatch(stack -> stack.is(VerticalCutMod.DEPTH_GAUGE));
 	}
 
+	/** The compass module (plain or lodestone), or {@link ItemStack#EMPTY}. */
+	public static ItemStack compass(List<ItemStack> modules) {
+		return modules.stream().filter(stack -> stack.is(Items.COMPASS)).findFirst().orElse(ItemStack.EMPTY);
+	}
+
 	/** Whether the item works as a module, and which kind; null if it doesn't. */
 	public static String moduleKind(ItemStack stack) {
 		if (isPouch(stack)) {
@@ -102,6 +108,9 @@ public class CrtItem extends Item {
 		}
 		if (stack.is(VerticalCutMod.DEPTH_GAUGE)) {
 			return "depth_gauge";
+		}
+		if (stack.is(Items.COMPASS)) {
+			return "compass";
 		}
 		return null;
 	}
