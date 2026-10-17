@@ -1,9 +1,16 @@
 package de.knito.verticalcut.client;
 
+import java.util.Collection;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -35,10 +42,17 @@ final class SliceColors {
 	/** The same for color pictures: nether portals blink purple, end portals teal. */
 	static final int NETHER_PORTAL_MARK = 0x03000000;
 	static final int END_PORTAL_MARK = 0x04000000;
+	/**
+	 * Placeholder for ores the finder bundle looks for. Never shown as is:
+	 * {@link SliceRenderer} lets them all flash white and black together.
+	 */
+	static final int FINDER_BLINK = 0x05FFFFFF;
 	/** Water in black and white pictures: a mid grey, between stone and the bright ores. */
 	static final int WATER = 0xFF8C8C8C;
 
 	private static final Map<Block, Integer> HIGHLIGHTS = new IdentityHashMap<>();
+	/** Ore samples for the finder bundle: what an ore drops, and the blocks that flash for it. */
+	private static final Map<Item, List<Block>> SAMPLES = new IdentityHashMap<>();
 
 	static {
 		put(0xFF000000, Blocks.COAL_ORE, Blocks.DEEPSLATE_COAL_ORE);
@@ -54,6 +68,25 @@ final class SliceColors {
 		put(0xFFFF00FF, Blocks.SPAWNER, Blocks.TRIAL_SPAWNER);
 		put(0xFFFF8800, Blocks.CHEST, Blocks.TRAPPED_CHEST, Blocks.BARREL);
 		put(0xFFFFFF80, Blocks.TORCH, Blocks.WALL_TORCH);
+
+		SAMPLES.put(Items.COAL, List.of(Blocks.COAL_ORE, Blocks.DEEPSLATE_COAL_ORE));
+		SAMPLES.put(Items.RAW_IRON, List.of(Blocks.IRON_ORE, Blocks.DEEPSLATE_IRON_ORE, Blocks.RAW_IRON_BLOCK));
+		SAMPLES.put(Items.RAW_COPPER, List.of(Blocks.COPPER_ORE, Blocks.DEEPSLATE_COPPER_ORE, Blocks.RAW_COPPER_BLOCK));
+		SAMPLES.put(Items.RAW_GOLD, List.of(Blocks.GOLD_ORE, Blocks.DEEPSLATE_GOLD_ORE, Blocks.NETHER_GOLD_ORE,
+				Blocks.RAW_GOLD_BLOCK));
+		SAMPLES.put(Items.REDSTONE, List.of(Blocks.REDSTONE_ORE, Blocks.DEEPSLATE_REDSTONE_ORE));
+		SAMPLES.put(Items.LAPIS_LAZULI, List.of(Blocks.LAPIS_ORE, Blocks.DEEPSLATE_LAPIS_ORE));
+		SAMPLES.put(Items.DIAMOND, List.of(Blocks.DIAMOND_ORE, Blocks.DEEPSLATE_DIAMOND_ORE));
+		SAMPLES.put(Items.EMERALD, List.of(Blocks.EMERALD_ORE, Blocks.DEEPSLATE_EMERALD_ORE));
+		SAMPLES.put(Items.QUARTZ, List.of(Blocks.NETHER_QUARTZ_ORE));
+		SAMPLES.put(Items.ANCIENT_DEBRIS, List.of(Blocks.ANCIENT_DEBRIS));
+	}
+
+	/** The blocks that flash for these ore samples; anything that isn't a sample is ignored. */
+	static Set<Block> finderBlocks(Collection<ItemStack> samples) {
+		return samples.stream()
+				.flatMap(stack -> SAMPLES.getOrDefault(stack.getItem(), List.of()).stream())
+				.collect(Collectors.toSet());
 	}
 
 	private SliceColors() {

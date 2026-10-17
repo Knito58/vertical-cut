@@ -43,7 +43,7 @@ This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
   The durability bar shows the coal that is burning right now. A new CRT starts empty.
 - **Module slots**: sneak + right-click with the CRT opens them. The Stone CRT has none,
   the Copper CRT has one.
-- **Coal pouch**: put any bundle (modded bundles too) into a module slot. The CRT then eats
+- **Coal pouch**: put any bundle (modded bundles too) without an amethyst shard into a module slot. The CRT then eats
   only from the bundle, never from your inventory, and it eats *anything* that burns in a
   furnace, worth as much as it would burn there compared to coal (a coal block is 10 coals,
   a lava bucket 12.5 and gives the empty bucket back). Careful: it burns enchanted wooden
@@ -51,6 +51,11 @@ This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
   worth. The CRT stores up to 256 coals' worth; whatever doesn't fit stays in the bundle.
   With a pouch, a thin bar beside the picture shows stored fuel plus the bundle
   (full at 64 coals), and the tooltip shows both numbers.
+- **Finder bundle**: a bundle with an amethyst shard in it, in a module slot. Every ore sample
+  in it makes that ore flash white and black in the picture: coal, raw iron, raw copper,
+  raw gold, redstone, lapis, diamond, emerald, quartz, ancient debris (deepslate and nether
+  variants included). Nothing in a finder bundle is ever burned, coal included. A shard in
+  your coal pouch turns it into a finder bundle, and it stops feeding the CRT.
 - **Interference**: lit portals (nether portal, end portal, end gateway; not the frames) within
   about 6 blocks and the nearest enderman within 8 blocks disturb the picture with snow and
   buzzing, the closer the worse; an angry enderman twice as much.
