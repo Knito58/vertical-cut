@@ -16,7 +16,7 @@ jobs:
         with:
           java-version: '25'
           distribution: 'microsoft'
-      - run: chmod +x ./gradlew && ./gradlew build
+      - run: chmod +x ./gradlew && ./gradlew build && rm -f build/libs/*-sources.jar
       - name: release notes from the changelog
         run: |
           v="${GITHUB_REF_NAME#v}"
@@ -26,6 +26,4 @@ jobs:
         with:
           name: Vertical Cut ${{ github.ref_name }} for Minecraft 26.3
           body_path: notes.md
-          files: |
-            build/libs/*.jar
-            !build/libs/*-sources.jar
+          files: build/libs/*.jar
