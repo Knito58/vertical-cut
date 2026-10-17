@@ -56,10 +56,10 @@ This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
   buzzing, the closer the worse; an angry enderman twice as much.
 - **Lightning rod module**: any lightning rod in a module slot shields against three quarters
   of the interference.
-- **Compass module**: a compass in a module slot. **K** locks the cut to the nearest of north,
-  east, south and west (for straight tunnels), K again lets it follow your view. A needle at
-  the top of the picture shows where the cut points. A lodestone compass points the cut at its
-  lodestone.
+- **Compass module**: a compass in a module slot. **K** locks the cut in the direction you look
+  (any angle, e.g. a diagonal tunnel), K again lets it follow your view. A needle at the top of
+  the picture shows where the cut points and turns green with a clink when you face that way.
+  A lodestone compass points the cut at its lodestone.
 - **Depth Gauge module** (3 sticks in a column, 3 copper nuggets beside them): a white ruler
   along the left edge of the picture with the Y level at your feet and every 8 blocks above and below.
 - Hold **Shift** over a CRT or the tube for a short explanation.
