@@ -42,6 +42,12 @@ This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
   worth. The CRT stores up to 256 coals' worth; whatever doesn't fit stays in the bundle.
   With a pouch, a thin bar beside the picture shows stored fuel plus the bundle
   (full at 64 coals), and the tooltip shows both numbers.
+- **Interference**: lit portals (nether portal, end portal, end gateway; not the frames) within
+  about 6 blocks and the nearest enderman within 8 blocks disturb the picture with snow and
+  buzzing, the closer the worse; an angry enderman twice as much.
+- **Lightning rod module**: any lightning rod in a module slot shields against three quarters
+  of the interference.
+- Hold **Shift** over a CRT or the tube for a short explanation.
 - Both show 32×32 blocks.
 - **V** shows or hides the cut. That is the only key bound by default.
 - Settings (needs CRT on/off, corner, distance from edge, size, opacity, CRT sounds,

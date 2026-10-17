@@ -4,6 +4,7 @@ import java.util.List;
 
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -75,6 +76,26 @@ public class CrtItem extends Item {
 			}
 		}
 		return -1;
+	}
+
+	/** Whether a lightning rod (any kind, weathered and waxed ones too) is among the modules. */
+	public static boolean hasLightningRod(List<ItemStack> modules) {
+		return modules.stream().anyMatch(CrtItem::isLightningRod);
+	}
+
+	public static boolean isLightningRod(ItemStack stack) {
+		return !stack.isEmpty() && BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath().endsWith("lightning_rod");
+	}
+
+	/** Whether the item works as a module, and which kind; null if it doesn't. */
+	public static String moduleKind(ItemStack stack) {
+		if (isPouch(stack)) {
+			return "pouch";
+		}
+		if (isLightningRod(stack)) {
+			return "lightning_rod";
+		}
+		return null;
 	}
 
 	/** Anything that works like a bundle, modded bundles included. */

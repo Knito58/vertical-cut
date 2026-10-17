@@ -125,7 +125,7 @@ public class CrtMenu extends AbstractContainerMenu {
 		modules.setChanged();
 	}
 
-	/** Accepts one module; for now that is the coal pouch, at most one per CRT. */
+	/** Accepts one module (coal pouch or lightning rod), at most one of each kind per CRT. */
 	private class ModuleSlot extends Slot {
 		ModuleSlot(Container container, int index, int x, int y) {
 			super(container, index, x, y);
@@ -133,11 +133,12 @@ public class CrtMenu extends AbstractContainerMenu {
 
 		@Override
 		public boolean mayPlace(ItemStack stack) {
-			if (!CrtItem.isPouch(stack)) {
+			String kind = CrtItem.moduleKind(stack);
+			if (kind == null) {
 				return false;
 			}
 			for (int i = 0; i < moduleSlots; i++) {
-				if (i != getContainerSlot() && CrtItem.isPouch(modules.getItem(i))) {
+				if (i != getContainerSlot() && kind.equals(CrtItem.moduleKind(modules.getItem(i)))) {
 					return false;
 				}
 			}

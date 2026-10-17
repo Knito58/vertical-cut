@@ -49,6 +49,8 @@ final class CrtEffects {
 	private float flickerPower;
 	private SoundInstance buzz;
 	private int buzzStopIn;
+	/** Current interference after shielding, 0..1. */
+	private float interference;
 
 	/** Forget everything, e.g. when the CRT is put away. */
 	void reset() {
@@ -59,6 +61,7 @@ final class CrtEffects {
 		extraBurpIn = 0;
 		nextFlickerIn = -1;
 		flickerTicks = 0;
+		interference = 0;
 		stopBuzz(Minecraft.getInstance());
 	}
 
@@ -116,6 +119,29 @@ final class CrtEffects {
 		}
 	}
 
+	/**
+	 * Interference (portals, endermen): extra snow bursts, more often and
+	 * stronger the closer the source; very close, a light snow stays on.
+	 * Adds to a crude tier's own flicker.
+	 */
+	void tickInterference(Minecraft client, float strength, boolean running) {
+		interference = running ? strength : 0;
+		if (interference <= 0 || flickerTicks > 0) {
+			return;
+		}
+		// At full strength about one burst per second.
+		if (random.nextFloat() < interference * 0.05f) {
+			flickerTicks = 6 + random.nextInt(10);
+			flickerPower = 0.4f + interference * 0.5f + random.nextFloat() * 0.1f;
+			if (random.nextFloat() < 0.3f) {
+				SoundEvent sound = BUZZES.get(random.nextInt(BUZZES.size()));
+				stopBuzz(client);
+				buzz = play(client, sound, 0.6f + random.nextFloat() * 0.9f, 0.1f + interference * 0.3f);
+				buzzStopIn = 4 + random.nextInt(7);
+			}
+		}
+	}
+
 	private void scheduleFlicker(CrtTier tier) {
 		int spread = Math.max(1, tier.flickerMaxSeconds - tier.flickerMinSeconds);
 		nextFlickerIn = (tier.flickerMinSeconds + random.nextInt(spread)) * 20;
@@ -130,10 +156,12 @@ final class CrtEffects {
 
 	/** Snow strength for the picture this tick, varying a little; 0 when not flickering. */
 	float flickerStrength() {
+		// Very close to a source, a light snow stays on between the bursts.
+		float steady = Math.max(0f, interference - 0.6f);
 		if (flickerTicks <= 0) {
-			return 0f;
+			return steady;
 		}
-		return flickerPower * (0.6f + random.nextFloat() * 0.4f);
+		return Math.max(steady, flickerPower * (0.6f + random.nextFloat() * 0.4f));
 	}
 
 	private void hiccup(Minecraft client, boolean pouch) {
