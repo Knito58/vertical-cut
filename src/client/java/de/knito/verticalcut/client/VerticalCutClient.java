@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
-import java.util.Set;
 
 import com.mojang.blaze3d.platform.InputConstants;
 
@@ -28,7 +27,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.LodestoneTracker;
-import net.minecraft.world.level.block.Block;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -271,9 +269,7 @@ public class VerticalCutClient implements ClientModInitializer {
 			// A flicker is a short burst of the same snow a dying CRT shows.
 			float pictureDecay = Math.max(decay, EFFECTS.flickerStrength());
 			float yaw = cutYaw != null ? cutYaw : client.player.getYRot();
-			Set<Block> finder = tier.showsOres
-					? SliceColors.finderBlocks(CrtItem.finderSamples(CrtItem.modules(crt)))
-					: Set.of();
+			Finder finder = tier.showsOres ? Finder.of(CrtItem.finderSamples(CrtItem.modules(crt))) : Finder.NONE;
 			SLICE.tick(client, tier.pixelsPerBlock, mode, pictureDecay, tier.laggy, yaw, deepView, finder);
 		}
 	}

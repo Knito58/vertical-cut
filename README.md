@@ -52,10 +52,14 @@ This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
   With a pouch, a thin bar beside the picture shows stored fuel plus the bundle
   (full at 64 coals), and the tooltip shows both numbers.
 - **Finder bundle**: a bundle with an amethyst shard in it, in a module slot. Every ore sample
-  in it makes that ore flash white and black in the picture: coal, raw iron, raw copper,
-  raw gold, redstone, lapis, diamond, emerald, quartz, ancient debris (deepslate and nether
-  variants included). Nothing in a finder bundle is ever burned, coal included. A shard in
-  your coal pouch turns it into a finder bundle, and it stops feeding the CRT.
+  in it makes that ore flash in the picture: white, its own color, black, its own color, so
+  with several samples you still see which ore is which. A sample is anything made of the ore:
+  raw ore, ingot, a single nugget, gem, dust or block (coal, iron, copper, gold, redstone, lapis,
+  diamond, emerald, quartz, netherite scrap for ancient debris; deepslate and nether variants
+  included). Modded ores work too when the mod uses the common `c:` tags (an item in
+  `c:ingots/tin` finds the blocks in `c:ores/tin`). Nothing in a finder bundle is ever burned,
+  coal included. A shard in your coal pouch turns it into a finder bundle, and it stops
+  feeding the CRT.
 - **Interference**: lit portals (nether portal, end portal, end gateway; not the frames) within
   about 6 blocks and the nearest enderman within 8 blocks disturb the picture with snow and
   buzzing, the closer the worse; an angry enderman twice as much.
