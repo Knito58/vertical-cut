@@ -98,7 +98,7 @@ public class VerticalCutClient implements ClientModInitializer {
 			EFFECTS.reset();
 			showing = config.visible;
 			if (showing) {
-				SLICE.tick(client, config.zoom, true, 0);
+				SLICE.tick(client, config.zoom, SliceMode.COLOR, 0, false);
 			}
 			return;
 		}
@@ -111,6 +111,7 @@ public class VerticalCutClient implements ClientModInitializer {
 
 		int fuel = CrtItem.fuel(crt);
 		EFFECTS.tick(client, fuel);
+		EFFECTS.tickFlicker(client, tier, fuel > 0);
 		CrtTier tier = ((CrtItem) crt.getItem()).tier;
 		colorPicture = tier.color;
 
@@ -122,7 +123,8 @@ public class VerticalCutClient implements ClientModInitializer {
 		lowOnCoal = decay > 0 && noSpare;
 		if (showing) {
 			int pixelsPerBlock = tier.switchableZoom ? config.zoom : tier.pixelsPerBlock;
-			SLICE.tick(client, pixelsPerBlock, tier.color, decay);
+			SliceMode mode = tier.color ? SliceMode.COLOR : tier.showsOres ? SliceMode.MONOCHROME : SliceMode.CAVES;
+			SLICE.tick(client, pixelsPerBlock, mode, decay, tier.laggy);
 		}
 	}
 
@@ -204,6 +206,11 @@ public class VerticalCutClient implements ClientModInitializer {
 		if (decay > 0 && RANDOM.nextFloat() < decay) {
 			alpha = (int) (alpha * (0.55f + RANDOM.nextFloat() * 0.45f));
 			jitterX = RANDOM.nextInt(5) - 2;
+		}
+		// The occasional flicker of a crude CRT: the picture drops out and jumps.
+		if (EFFECTS.flickering()) {
+			alpha = RANDOM.nextFloat() < 0.3f ? alpha / 6 : (int) (alpha * (0.3f + RANDOM.nextFloat() * 0.7f));
+			jitterX = RANDOM.nextInt(7) - 3;
 		}
 
 		int shown = Math.round(size * EFFECTS.bulge());

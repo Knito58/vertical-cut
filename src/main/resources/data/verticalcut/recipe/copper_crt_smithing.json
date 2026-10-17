@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:smithing_transform",
+  "addition": "verticalcut:copper_tube",
+  "base": "verticalcut:stone_crt",
+  "result": {
+    "id": "verticalcut:copper_crt"
+  },
+  "template": "minecraft:torch"
+}

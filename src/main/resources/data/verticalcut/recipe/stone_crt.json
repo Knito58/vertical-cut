@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "C": "#minecraft:stone_crafting_materials",
+    "G": "minecraft:glass_pane",
+    "T": "minecraft:torch"
+  },
+  "pattern": [
+    "CGC",
+    "CTC",
+    "CCC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "verticalcut:stone_crt"
+  }
+}

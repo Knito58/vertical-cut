@@ -1,6 +1,8 @@
 {
 	"key.category.verticalcut.verticalcut": "Vertical Cut",
+	"item.verticalcut.stone_crt": "Stone CRT",
 	"item.verticalcut.copper_crt": "Copper CRT",
+	"item.verticalcut.copper_tube": "Copper Picture Tube",
 	"key.verticalcut.toggle": "Show/hide cut",
 	"key.verticalcut.opacity": "Change opacity",
 	"key.verticalcut.zoom": "Change zoom",

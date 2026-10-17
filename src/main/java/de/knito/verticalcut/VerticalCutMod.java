@@ -30,7 +30,10 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
  * single player and multiplayer.
  */
 public class VerticalCutMod implements ModInitializer {
+	public static final CrtItem STONE_CRT = registerCrt(CrtTier.STONE);
 	public static final CrtItem COPPER_CRT = registerCrt(CrtTier.COPPER);
+	/** Upgrades a Stone CRT to a Copper CRT on the smithing table. */
+	public static final Item COPPER_TUBE = registerItem("copper_tube");
 
 	/** Players whose client currently shows the cut. */
 	private static final Set<UUID> SCANNING = new HashSet<>();
@@ -51,7 +54,11 @@ public class VerticalCutMod implements ModInitializer {
 		ServerTickEvents.END_SERVER_TICK.register(VerticalCutMod::tick);
 
 		CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.TOOLS_AND_UTILITIES)
-				.register(tab -> tab.accept(COPPER_CRT));
+				.register(tab -> {
+					tab.accept(STONE_CRT);
+					tab.accept(COPPER_CRT);
+					tab.accept(COPPER_TUBE);
+				});
 
 		VerticalCut.LOGGER.info("Vertical Cut loaded");
 	}
@@ -66,6 +73,11 @@ public class VerticalCutMod implements ModInitializer {
 		CrtItem item = new CrtItem(tier, properties);
 		Registry.register(BuiltInRegistries.ITEM, key, item);
 		return item;
+	}
+
+	private static Item registerItem(String name) {
+		ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, VerticalCut.id(name));
+		return Registry.register(BuiltInRegistries.ITEM, key, new Item(new Item.Properties().setId(key)));
 	}
 
 	/**

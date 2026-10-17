@@ -7,20 +7,32 @@ so you can spot ores, caves and structures without digging.
 This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
 ([old forum page](https://www.minecraftforum.net/forums/mapping-and-modding-java-edition/minecraft-mods/1290593-vertical-cut-find-diamonds-iron-and-dungeons)).
 
-**Status:** Copper CRT (the first scanning device) is in.
+**Status:** Stone CRT and Copper CRT (the first two scanning devices) are in.
 
-- The cut only works while you hold a **Copper CRT** (offhand or main hand). Recipe:
+- The cut only works while you hold a CRT (offhand or main hand).
+- **Stone CRT**, the starter device. Recipe (cobblestone, blackstone or cobbled deepslate all work):
   ```
-  C G C      C = copper ingot, G = glass pane
-  C R C      R = redstone
+  C G C      C = cobblestone, G = glass pane
   C T C      T = torch
+  C C C
   ```
-  The recipe appears in the recipe book once you pick up a copper ingot.
-- The CRT burns coal: one coal or charcoal lasts 4 minutes of scanning (adjustable from
+  It is a crude cave finder: it shows caves, water and lava, but no ores. The picture lags
+  behind when you walk, and it flickers and buzzes now and then.
+- **Copper CRT**, the upgrade. Shows ores as bright dots, a steady picture, and only flickers
+  rarely. Made on the smithing table: torch + Stone CRT + Copper Picture Tube. The tube:
+  ```
+  C C C      C = copper ingot
+  C T C      T = torch
+  C C C
+  ```
+  The fuel in the CRT carries over to the upgrade.
+- Recipes appear in the recipe book when you pick up cobblestone, a copper ingot or a Stone CRT.
+- In both black and white CRTs, water is mid grey and lava blinks.
+- CRTs burn coal: one coal or charcoal lasts 4 minutes of scanning (adjustable from
   60 to 600 seconds in the settings; on a server, the server's setting counts) and is taken from
   your inventory automatically when the tank is empty. It only burns while the cut is shown.
   The durability bar is the fuel gauge. A new CRT starts empty.
-- The Copper CRT shows a black and white picture, 32×32 blocks. Ores are bright dots.
+- Both show 32×32 blocks.
 - **V** shows or hides the cut. That is the only key bound by default.
 - Settings (needs CRT on/off, corner, distance from edge, size, opacity, CRT sounds,
   seconds per coal, zoom) are in

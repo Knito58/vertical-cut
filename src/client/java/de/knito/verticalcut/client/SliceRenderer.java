@@ -10,6 +10,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.block.state.BlockState;
 
 import de.knito.verticalcut.VerticalCut;
 
@@ -18,7 +19,8 @@ import de.knito.verticalcut.VerticalCut;
  *
  * The old mod looked up every block on every frame. Here the slice is only
  * recomputed when the player moves to another block, turns noticeably, or a
- * refresh interval passes (to pick up dug or placed blocks). Drawing the
+ * refresh interval passes (to pick up dug or placed blocks). A crude CRT only
+ * refreshes on a slow timer, so its picture lags behind. Drawing the
  * finished texture each frame is a single textured quad on the GPU.
  *
  * The computed picture is kept in {@link #base}; {@link #present} copies it
@@ -34,6 +36,10 @@ final class SliceRenderer {
 	private static final double ABOVE_FRACTION = 0.25;
 	/** Recompute at least this often (in ticks) to show changed blocks. */
 	private static final int REFRESH_TICKS = 20;
+	/** A laggy (crude) CRT only recomputes this often and ignores movement. */
+	private static final int LAG_REFRESH_TICKS = 30;
+	/** Half period of blinking lava in black and white pictures. */
+	private static final long LAVA_BLINK_MILLIS = 400;
 	/** Recompute when the view direction changed by more than this (degrees). */
 	private static final float TURN_THRESHOLD = 2.0f;
 
@@ -49,9 +55,11 @@ final class SliceRenderer {
 	private BlockPos lastPos;
 	private float lastYaw = Float.NaN;
 	private int lastPixelsPerBlock;
-	private boolean lastColor;
+	private SliceMode lastMode;
 	private int ticksSinceUpdate;
 	private boolean lastNoisy;
+	private boolean hasLava;
+	private boolean lavaBright;
 
 	boolean isReady() {
 		return texture != null;
@@ -59,10 +67,11 @@ final class SliceRenderer {
 
 	/**
 	 * @param pixelsPerBlock 1, 2 or 4
-	 * @param color false draws black and white with ores as bright dots
+	 * @param mode coloring, see {@link SliceMode}
 	 * @param decay 0 = perfect picture, 1 = almost dead (grey, noisy, jittery)
+	 * @param laggy only refresh every {@link #LAG_REFRESH_TICKS}, even while moving
 	 */
-	void tick(Minecraft client, int pixelsPerBlock, boolean color, float decay) {
+	void tick(Minecraft client, int pixelsPerBlock, SliceMode mode, float decay, boolean laggy) {
 		LocalPlayer player = client.player;
 		ClientLevel level = client.level;
 		if (player == null || level == null) {
@@ -80,27 +89,34 @@ final class SliceRenderer {
 
 		boolean moved = !pos.equals(lastPos);
 		boolean turned = Float.isNaN(lastYaw) || Math.abs(wrapDegrees(yaw - lastYaw)) > TURN_THRESHOLD;
-		boolean modeChanged = pixelsPerBlock != lastPixelsPerBlock || color != lastColor;
-		boolean recompute = moved || turned || modeChanged || ticksSinceUpdate >= REFRESH_TICKS;
+		boolean modeChanged = pixelsPerBlock != lastPixelsPerBlock || mode != lastMode;
+		boolean recompute = laggy
+				? modeChanged || ticksSinceUpdate >= LAG_REFRESH_TICKS
+				: moved || turned || modeChanged || ticksSinceUpdate >= REFRESH_TICKS;
 
 		if (recompute) {
 			lastPos = pos;
 			lastYaw = yaw;
 			lastPixelsPerBlock = pixelsPerBlock;
-			lastColor = color;
+			lastMode = mode;
 			ticksSinceUpdate = 0;
-			compute(level, player, yaw, pixelsPerBlock, color);
+			compute(level, player, yaw, pixelsPerBlock, mode);
 		}
+
+		boolean bright = (System.currentTimeMillis() / LAVA_BLINK_MILLIS) % 2 == 0;
+		boolean blink = hasLava && bright != lavaBright;
+		lavaBright = bright;
 
 		// A decaying picture changes every tick (noise), a healthy one only when recomputed.
 		boolean noisy = decay > 0;
-		if (recompute || noisy || lastNoisy) {
+		if (recompute || noisy || lastNoisy || blink) {
 			present(decay);
 		}
 		lastNoisy = noisy;
 	}
 
-	private void compute(ClientLevel level, LocalPlayer player, float yaw, int pixelsPerBlock, boolean color) {
+	private void compute(ClientLevel level, LocalPlayer player, float yaw, int pixelsPerBlock, SliceMode mode) {
+		hasLava = false;
 		int blocks = SIZE / pixelsPerBlock;
 		int behind = Math.max(1, BEHIND / pixelsPerBlock);
 		int above = (int) (blocks * ABOVE_FRACTION);
@@ -130,9 +146,11 @@ final class SliceRenderer {
 					argb = SliceColors.AIR;
 				} else {
 					cursor.set(x, y, z);
-					argb = color
-							? SliceColors.colorOf(level, cursor, level.getBlockState(cursor))
-							: SliceColors.monochromeOf(level, cursor, level.getBlockState(cursor));
+					BlockState state = level.getBlockState(cursor);
+					argb = mode == SliceMode.COLOR
+							? SliceColors.colorOf(level, cursor, state)
+							: SliceColors.monochromeOf(level, cursor, state, mode == SliceMode.MONOCHROME);
+					hasLava |= argb == SliceColors.LAVA_BLINK;
 				}
 				fill(col, row, pixelsPerBlock, argb);
 			}
@@ -170,6 +188,9 @@ final class SliceRenderer {
 			for (int x = 0; x < SIZE; x++) {
 				int sx = Math.floorMod(x + shift, SIZE);
 				int argb = base[y * SIZE + sx];
+				if (argb == SliceColors.LAVA_BLINK) {
+					argb = lavaBright ? SliceColors.LAVA_BRIGHT : SliceColors.LAVA_DARK;
+				}
 				if (decay > 0) {
 					argb = decayPixel(argb, decay);
 				}

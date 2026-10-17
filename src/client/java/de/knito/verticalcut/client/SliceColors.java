@@ -19,6 +19,15 @@ import net.minecraft.world.level.material.MapColor;
 final class SliceColors {
 	static final int AIR = 0x00000000;
 	static final int CAVE_AIR = 0x30000000;
+	/**
+	 * Placeholder for lava in black and white pictures. Never shown as is:
+	 * {@link SliceRenderer} replaces it with a blinking bright or dark grey.
+	 */
+	static final int LAVA_BLINK = 0x01FF4400;
+	static final int LAVA_BRIGHT = 0xFFFFFFFF;
+	static final int LAVA_DARK = 0xFF505050;
+	/** Water in black and white pictures: a mid grey, between stone and the bright ores. */
+	static final int WATER = 0xFF8C8C8C;
 
 	private static final Map<Block, Integer> HIGHLIGHTS = new IdentityHashMap<>();
 
@@ -48,14 +57,22 @@ final class SliceColors {
 	}
 
 	/**
-	 * Black and white picture of the copper CRT: highlighted blocks are
-	 * bright dots, everything else a dim grey, so the player has to read it.
+	 * Black and white picture: highlighted blocks are bright dots (only when
+	 * {@code showOres}), water is mid grey, lava blinks, everything else is a
+	 * dim grey, so the player has to read it.
 	 */
-	static int monochromeOf(Level level, BlockPos pos, BlockState state) {
-		if (!state.isAir() && HIGHLIGHTS.containsKey(state.getBlock())) {
+	static int monochromeOf(Level level, BlockPos pos, BlockState state, boolean showOres) {
+		if (state.is(Blocks.LAVA)) {
+			return LAVA_BLINK;
+		}
+		// Water, and anything waterlogged or growing under water.
+		if (!state.getFluidState().isEmpty()) {
+			return WATER;
+		}
+		if (showOres && !state.isAir() && HIGHLIGHTS.containsKey(state.getBlock())) {
 			return 0xFFFFFFFF;
 		}
-		int argb = colorOf(level, pos, state);
+		int argb = plainColorOf(level, pos, state);
 		int r = (argb >> 16) & 0xFF;
 		int g = (argb >> 8) & 0xFF;
 		int b = argb & 0xFF;
@@ -64,13 +81,19 @@ final class SliceColors {
 	}
 
 	static int colorOf(Level level, BlockPos pos, BlockState state) {
+		if (!state.isAir()) {
+			Integer highlight = HIGHLIGHTS.get(state.getBlock());
+			if (highlight != null) {
+				return highlight;
+			}
+		}
+		return plainColorOf(level, pos, state);
+	}
+
+	/** Map color without highlights. */
+	private static int plainColorOf(Level level, BlockPos pos, BlockState state) {
 		if (state.isAir()) {
 			return state.is(Blocks.CAVE_AIR) ? CAVE_AIR : AIR;
-		}
-
-		Integer highlight = HIGHLIGHTS.get(state.getBlock());
-		if (highlight != null) {
-			return highlight;
 		}
 
 		MapColor mapColor = state.getMapColor(level, pos);
