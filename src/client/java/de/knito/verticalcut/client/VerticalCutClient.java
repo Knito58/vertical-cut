@@ -67,6 +67,8 @@ public class VerticalCutClient implements ClientModInitializer {
 	private static final float ALIGNED_DEGREES = 1.5f;
 	/** ... and stays aligned (no new clink) until it is off by more than this. */
 	private static final float UNALIGNED_DEGREES = 3f;
+	/** Note block steps (12 = normal pitch) the alignment clink picks from. */
+	private static final int[] CHIME_NOTES = {13, 15, 18, 20, 22};
 	private static final int NEEDLE_LENGTH = 6;
 	/** Width at which the Shift details in tooltips wrap. */
 	private static final int TOOLTIP_WIDTH = 200;
@@ -306,7 +308,9 @@ public class VerticalCutClient implements ClientModInitializer {
 		float off = Math.abs(wrapDegrees(cutYaw - client.player.getYRot()));
 		if (!aligned && off <= ALIGNED_DEGREES) {
 			aligned = true;
-			CrtEffects.play(client, SoundEvents.AMETHYST_BLOCK_CHIME, 1.6f, 0.6f);
+			// A random note of a pentatonic scale, so it never sounds the same twice in a row.
+			int note = CHIME_NOTES[RANDOM.nextInt(CHIME_NOTES.length)];
+			CrtEffects.play(client, SoundEvents.AMETHYST_BLOCK_CHIME, (float) Math.pow(2, (note - 12) / 12.0), 0.5f);
 		} else if (aligned && off > UNALIGNED_DEGREES) {
 			aligned = false;
 		}
