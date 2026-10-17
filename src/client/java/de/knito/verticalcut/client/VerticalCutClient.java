@@ -324,9 +324,12 @@ public class VerticalCutClient implements ClientModInitializer {
 		int tex = SliceRenderer.SIZE;
 		graphics.blit(RenderPipelines.GUI_TEXTURED, SLICE.textureId, sx, sy, 0, 0, shown, shown, tex, tex, tex, tex,
 				(pictureAlpha << 24) | 0xFFFFFF);
+		int figureX = figureLeft(sx, shown);
 		if (depthGauge) {
-			drawRuler(graphics, client, sx, sy, shown);
+			drawRuler(graphics, client, sx, sy, shown, figureX - 1);
 		}
+		drawFigure(graphics, figureX, figureBottom(sy, shown),
+				colorPicture ? config.figureColor.argb : 0xFFFFFFFF);
 		graphics.outline(sx - 1, sy - 1, shown + 2, shown + 2, 0xFFAAAAAA);
 		if (coalBar >= 0) {
 			drawCoalBar(graphics, x, y, size, config.corner.right());
@@ -341,11 +344,12 @@ public class VerticalCutClient implements ClientModInitializer {
 	 * Depth Gauge: white marks with Y values inside the picture along its
 	 * left edge, counted from the feet (labelled with their own Y) in steps
 	 * of 8 blocks, so the numbers change with every step up or down. The feet
-	 * mark is a line reaching the player marker; the other marks are 8 blocks
+	 * mark is a line reaching the stick figure; the other marks are 8 blocks
 	 * away from it and never touch it. The numbers are drawn at half size.
 	 * When the marks would crowd, only every 16 blocks get one.
 	 */
-	private static void drawRuler(GuiGraphicsExtractor graphics, Minecraft client, int sx, int sy, int shown) {
+	private static void drawRuler(GuiGraphicsExtractor graphics, Minecraft client, int sx, int sy, int shown,
+			int lineEnd) {
 		double scale = (double) shown / SliceRenderer.SIZE;
 		double blockPx = SLICE.pixelsPerBlock() * scale;
 		// About half size, but each font pixel a whole number of screen pixels, so it stays sharp.
@@ -358,7 +362,6 @@ public class VerticalCutClient implements ClientModInitializer {
 		double stepPx = step * blockPx;
 		int first = -(int) Math.floor((feetPx - sy) / stepPx);
 		int last = (int) Math.floor((sy + shown - feetPx) / stepPx);
-		int markerX = sx + (int) Math.round(SLICE.feetPixelColumn() * scale);
 
 		// Short unnumbered marks halfway between the numbered ones.
 		for (int k = first - 1; k <= last; k++) {
@@ -373,9 +376,9 @@ public class VerticalCutClient implements ClientModInitializer {
 			String label = Integer.toString(feetY - k * step);
 			graphics.fill(sx, y, sx + RULER_TICK, y + 1, 0xFFFFFFFF);
 			int labelEnd = sx + RULER_TICK + 2 + Math.round(client.font.width(label) * textScale);
-			if (k == 0 && labelEnd < markerX) {
-				// From behind the number on to the player marker.
-				graphics.fill(labelEnd, y, markerX, y + 1, 0xFFFFFFFF);
+			if (k == 0 && labelEnd < lineEnd) {
+				// From behind the number on to the stick figure.
+				graphics.fill(labelEnd, y, lineEnd, y + 1, 0xFFFFFFFF);
 			}
 			float textY = Math.clamp(y - textHeight / 2, sy + 1, sy + shown - textHeight);
 			textY = Math.round(textY * guiScale) / guiScale;
@@ -388,6 +391,57 @@ public class VerticalCutClient implements ClientModInitializer {
 			}
 			graphics.text(client.font, label, 0, 0, 0xFFFFFFFF, true);
 			graphics.pose().popMatrix();
+		}
+	}
+
+	/** The player in the picture (# = figure), drawn in GUI pixels with a black outline. */
+	private static final String[] FIGURE = {
+			".###.",
+			".###.",
+			".###.",
+			"..#..",
+			"#####",
+			"..#..",
+			"..#..",
+			".#.#.",
+			"#...#",
+	};
+
+	/** Left edge of the stick figure, centered on the player's block column. */
+	private static int figureLeft(int sx, int shown) {
+		double scale = (double) shown / SliceRenderer.SIZE;
+		double center = sx + (SLICE.feetPixelColumn() + SLICE.pixelsPerBlock() / 2.0) * scale;
+		return (int) Math.round(center - FIGURE[0].length() / 2.0);
+	}
+
+	/** Bottom edge of the stick figure: the bottom of the player's feet block. */
+	private static int figureBottom(int sy, int shown) {
+		double scale = (double) shown / SliceRenderer.SIZE;
+		int ppb = SLICE.pixelsPerBlock();
+		return sy + (int) Math.round((SLICE.feetPixelRow() - ppb / 2 + ppb) * scale);
+	}
+
+	/**
+	 * The stick figure standing for the player, always the same size so it
+	 * stays recognizable at every zoom.
+	 */
+	private static void drawFigure(GuiGraphicsExtractor graphics, int left, int bottom, int argb) {
+		int top = bottom - FIGURE.length;
+		for (int pass = 0; pass < 2; pass++) {
+			for (int row = 0; row < FIGURE.length; row++) {
+				for (int col = 0; col < FIGURE[row].length(); col++) {
+					if (FIGURE[row].charAt(col) != '#') {
+						continue;
+					}
+					int px = left + col;
+					int py = top + row;
+					if (pass == 0) {
+						graphics.fill(px - 1, py - 1, px + 2, py + 2, 0xFF000000);
+					} else {
+						graphics.fill(px, py, px + 1, py + 1, argb);
+					}
+				}
+			}
 		}
 	}
 

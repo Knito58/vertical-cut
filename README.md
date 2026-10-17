@@ -62,7 +62,7 @@ This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
 - Stone and Copper CRT show 32×32 blocks.
 - **V** shows or hides the cut. That is the only key bound by default.
 - Settings (needs CRT on/off, corner, distance from edge, size, opacity, CRT sounds,
-  seconds per coal, zoom) are in
+  seconds per coal, zoom, color of the stick figure that shows you) are in
   **Mod Menu → Vertical Cut → Configure** and are saved in `config/verticalcut.json`.
   With "Needs CRT in hand" off, the cut works without a device, in color, at the configured zoom.
 - Keys for opacity, zoom and the settings screen exist but are unbound; bind them in

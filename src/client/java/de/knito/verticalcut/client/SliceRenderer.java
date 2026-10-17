@@ -31,7 +31,7 @@ final class SliceRenderer {
 	static final int SIZE = 128;
 
 	/** How many blocks of the slice lie behind the player (left edge), at 1 pixel per block. */
-	private static final int BEHIND = 8;
+	private static final int BEHIND = 16;
 	/** Fraction of the height that lies above the player's feet. */
 	private static final double ABOVE_FRACTION = 0.25;
 	/** Recompute at least this often (in ticks) to show changed blocks. */
@@ -42,8 +42,6 @@ final class SliceRenderer {
 	private static final long LAVA_BLINK_MILLIS = 400;
 	/** Recompute when the view direction changed by more than this (degrees). */
 	private static final float TURN_THRESHOLD = 2.0f;
-
-	private static final int MARKER_COLOR = 0xFFFFFFFF;
 
 	final Identifier textureId = VerticalCut.id("slice");
 
@@ -77,7 +75,7 @@ final class SliceRenderer {
 		return above * lastPixelsPerBlock + lastPixelsPerBlock / 2;
 	}
 
-	/** Texture pixel column where the player marker starts. */
+	/** Texture pixel column where the player's block starts. */
 	int feetPixelColumn() {
 		return Math.max(1, BEHIND / lastPixelsPerBlock) * lastPixelsPerBlock;
 	}
@@ -180,10 +178,6 @@ final class SliceRenderer {
 				fill(col, row, pixelsPerBlock, argb);
 			}
 		}
-
-		// Mark the player's feet and head.
-		fill(behind, above, pixelsPerBlock, MARKER_COLOR);
-		fill(behind, above - 1, pixelsPerBlock, MARKER_COLOR);
 	}
 
 	/** Writes one block as a square of pixels into the base picture. */
