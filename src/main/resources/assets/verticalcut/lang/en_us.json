@@ -8,7 +8,6 @@
 	"item.verticalcut.depth_gauge": "Depth Gauge",
 	"key.verticalcut.toggle": "Show/hide cut",
 	"key.verticalcut.opacity": "Change opacity",
-	"key.verticalcut.zoom": "Change zoom",
 	"key.verticalcut.settings": "Open settings",
 
 	"verticalcut.container.modules": "CRT Modules",
@@ -38,7 +37,7 @@
 
 	"verticalcut.config.title": "Vertical Cut Settings",
 	"verticalcut.config.visible": "Show cut",
-	"verticalcut.config.require_device": "Needs CRT in hand",
+	"verticalcut.config.crt_in_hand": "CRT must be in hand",
 	"verticalcut.config.corner": "Corner",
 	"verticalcut.config.corner.top_left": "Top left",
 	"verticalcut.config.corner.top_right": "Top right",
@@ -49,8 +48,6 @@
 	"verticalcut.config.opacity": "Opacity: %s / 7",
 	"verticalcut.config.seconds_per_coal": "Seconds per coal: %s",
 	"verticalcut.config.sounds": "CRT sounds",
-	"verticalcut.config.zoom": "Zoom (without CRT)",
-	"verticalcut.config.zoom.value": "%sx",
 	"verticalcut.config.figure_color": "You in the picture",
 	"verticalcut.config.figure_color.yellow": "Yellow",
 	"verticalcut.config.figure_color.red": "Red",

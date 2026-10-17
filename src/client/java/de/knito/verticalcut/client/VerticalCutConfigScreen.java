@@ -40,9 +40,9 @@ public class VerticalCutConfigScreen extends Screen {
 						(button, value) -> config.visible = value));
 		y += ROW;
 
-		addRenderableWidget(CycleButton.onOffBuilder(config.requireDevice)
-				.create(x, y, BUTTON_WIDTH, 20, Component.translatable("verticalcut.config.require_device"),
-						(button, value) -> config.requireDevice = value));
+		addRenderableWidget(CycleButton.onOffBuilder(config.crtInHand)
+				.create(x, y, BUTTON_WIDTH, 20, Component.translatable("verticalcut.config.crt_in_hand"),
+						(button, value) -> config.crtInHand = value));
 		y += ROW;
 
 		addRenderableWidget(CycleButton.<Corner>builder(
@@ -73,12 +73,6 @@ public class VerticalCutConfigScreen extends Screen {
 		addRenderableWidget(new IntSlider(x, y, "verticalcut.config.seconds_per_coal",
 				VerticalCutConfig.MIN_SECONDS_PER_COAL, VerticalCutConfig.MAX_SECONDS_PER_COAL, 10,
 				config.secondsPerCoal, value -> config.secondsPerCoal = value));
-		y += ROW;
-
-		addRenderableWidget(CycleButton.<Integer>builder(zoom -> Component.translatable("verticalcut.config.zoom.value", zoom), config.zoom)
-				.withValues(1, 2)
-				.create(x, y, BUTTON_WIDTH, 20, Component.translatable("verticalcut.config.zoom"),
-						(button, value) -> config.zoom = value));
 		y += ROW;
 
 		addRenderableWidget(CycleButton.<FigureColor>builder(

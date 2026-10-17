@@ -50,6 +50,8 @@ public class VerticalCutMod implements ModInitializer {
 
 	/** Players whose client currently shows the cut. */
 	private static final Set<UUID> SCANNING = new HashSet<>();
+	/** Scanning players whose CRT may be anywhere in the inventory, not only in hand. */
+	private static final Set<UUID> ANYWHERE = new HashSet<>();
 
 	@Override
 	public void onInitialize() {
@@ -61,8 +63,16 @@ public class VerticalCutMod implements ModInitializer {
 			} else {
 				SCANNING.remove(id);
 			}
+			if (payload.inHand()) {
+				ANYWHERE.remove(id);
+			} else {
+				ANYWHERE.add(id);
+			}
 		});
-		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> SCANNING.remove(handler.player.getUUID()));
+		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+			SCANNING.remove(handler.player.getUUID());
+			ANYWHERE.remove(handler.player.getUUID());
+		});
 
 		ServerTickEvents.END_SERVER_TICK.register(VerticalCutMod::tick);
 
@@ -113,7 +123,7 @@ public class VerticalCutMod implements ModInitializer {
 			if (!SCANNING.contains(player.getUUID())) {
 				continue;
 			}
-			ItemStack crt = CrtItem.held(player);
+			ItemStack crt = CrtItem.active(player, !ANYWHERE.contains(player.getUUID()));
 			if (crt.isEmpty()) {
 				continue;
 			}

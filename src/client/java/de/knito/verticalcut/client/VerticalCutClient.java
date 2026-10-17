@@ -43,8 +43,8 @@ import de.knito.verticalcut.VerticalCutMod;
  * Client entrypoint: key mappings, deciding what the cut may show (depends on
  * the held CRT and its fuel), and the HUD element that draws it.
  *
- * Only V (show/hide) is bound by default. Opacity, zoom and the settings
- * screen have keys without a default binding.
+ * Only V (show/hide) is bound by default. Opacity and the settings screen
+ * have keys without a default binding.
  */
 public class VerticalCutClient implements ClientModInitializer {
 	private static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(VerticalCut.id("verticalcut"));
@@ -70,7 +70,6 @@ public class VerticalCutClient implements ClientModInitializer {
 
 	private static KeyMapping toggleKey;
 	private static KeyMapping opacityKey;
-	private static KeyMapping zoomKey;
 	private static KeyMapping settingsKey;
 
 	/** What the HUD should draw this tick, decided in the client tick. */
@@ -87,16 +86,15 @@ public class VerticalCutClient implements ClientModInitializer {
 	/** Share of the coal bar beside the frame (stored fuel plus pouch); -1 = no pouch, no bar. */
 	private static float coalBar;
 	/** Last scanning state sent to the server; null = send again. */
-	private static Boolean sentScanning;
+	private static ScanStatePayload sentScanState;
 
 	@Override
 	public void onInitializeClient() {
 		toggleKey = register("key.verticalcut.toggle", InputConstants.KEY_V);
 		opacityKey = register("key.verticalcut.opacity", InputConstants.UNKNOWN.getValue());
-		zoomKey = register("key.verticalcut.zoom", InputConstants.UNKNOWN.getValue());
 		settingsKey = register("key.verticalcut.settings", InputConstants.UNKNOWN.getValue());
 
-		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> sentScanning = null);
+		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> sentScanState = null);
 		ClientTickEvents.END_CLIENT_TICK.register(VerticalCutClient::tick);
 		MenuScreens.register(VerticalCutMod.CRT_MENU, CrtScreen::new);
 		ItemTooltipCallback.EVENT.register((stack, context, type, lines) -> addTooltip(stack, lines));
@@ -174,19 +172,9 @@ public class VerticalCutClient implements ClientModInitializer {
 			return;
 		}
 
-		sendScanState(config.visible && config.requireDevice);
+		sendScanState(new ScanStatePayload(config.visible, config.crtInHand));
 
-		if (!config.requireDevice) {
-			EFFECTS.reset();
-			INTERFERENCE.reset();
-			showing = config.visible;
-			if (showing) {
-				SLICE.tick(client, config.zoom, SliceMode.COLOR, 0, false);
-			}
-			return;
-		}
-
-		ItemStack crt = CrtItem.held(client.player);
+		ItemStack crt = CrtItem.active(client.player, config.crtInHand);
 		if (crt.isEmpty() || !config.visible) {
 			EFFECTS.reset();
 			INTERFERENCE.reset();
@@ -222,11 +210,10 @@ public class VerticalCutClient implements ClientModInitializer {
 		outOfCoal = fuel == 0 && !EFFECTS.dying() && noSpare;
 		lowOnCoal = decay > 0 && noSpare;
 		if (showing) {
-			int pixelsPerBlock = tier.switchableZoom ? config.zoom : tier.pixelsPerBlock;
 			SliceMode mode = tier.color ? SliceMode.COLOR : tier.showsOres ? SliceMode.MONOCHROME : SliceMode.CAVES;
 			// A flicker is a short burst of the same snow a dying CRT shows.
 			float pictureDecay = Math.max(decay, EFFECTS.flickerStrength());
-			SLICE.tick(client, pixelsPerBlock, mode, pictureDecay, tier.laggy);
+			SLICE.tick(client, tier.pixelsPerBlock, mode, pictureDecay, tier.laggy);
 		}
 	}
 
@@ -250,10 +237,6 @@ public class VerticalCutClient implements ClientModInitializer {
 			config.opacity = config.opacity % VerticalCutConfig.OPACITY_LEVELS + 1;
 			changed = true;
 		}
-		while (zoomKey.consumeClick()) {
-			config.zoom = config.zoom == 1 ? 2 : 1;
-			changed = true;
-		}
 		if (changed) {
 			config.save();
 		}
@@ -262,13 +245,13 @@ public class VerticalCutClient implements ClientModInitializer {
 		}
 	}
 
-	private static void sendScanState(boolean scanning) {
-		if (sentScanning != null && sentScanning == scanning) {
+	private static void sendScanState(ScanStatePayload state) {
+		if (state.equals(sentScanState)) {
 			return;
 		}
 		if (ClientPlayNetworking.canSend(ScanStatePayload.TYPE)) {
-			ClientPlayNetworking.send(new ScanStatePayload(scanning));
-			sentScanning = scanning;
+			ClientPlayNetworking.send(state);
+			sentScanState = state;
 		}
 	}
 
