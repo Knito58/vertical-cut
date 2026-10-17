@@ -4,6 +4,8 @@ The big jump: color.
 
 > *Grey shows the bones. Iron shows the blood.*
 
+![The Iron CRT: 64 by 64 blocks in color, every ore in its own color](images/iron-crt.png)
+
 ## How to make it
 Smithing table: torch + [Copper CRT](Copper-CRT.md) + [Iron Picture Tube](Picture-Tubes.md).
 
