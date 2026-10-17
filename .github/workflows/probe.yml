@@ -16,11 +16,14 @@ jobs:
         run: |
           M=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-common.jar
           C=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-client-only.jar
-          p() { echo "=== $1"; javap -cp "$C:$M" "$1" 2>&1 | grep -v 'lambda\$' | grep -vE "^\s*$" | head -${2:-80}; }
-          p net.minecraft.world.item.component.BundleContents 70
-          p 'net.minecraft.world.item.component.BundleContents$Mutable' 40
-          p net.minecraft.world.item.component.ItemContainerContents 50
-          p net.minecraft.world.level.block.entity.FuelValues 30
+          p() { echo "=== $1"; javap -cp "$C:$M" "$1" 2>&1 | grep -v 'lambda\$' | grep -vE "^\s*$" | head -${2:-80} || true; }
+          set +e +o pipefail
+          unzip -l $M | grep -iE "FuelValues|ItemStackTemplate" | head
+          F=$(unzip -l $M | grep -oE "net/minecraft/[A-Za-z/]*FuelValues.class" | head -1 | sed 's/.class$//; s#/#.#g')
+          p $F 30
+          p net.minecraft.world.item.ItemStackTemplate 40
+          p 'net.minecraft.world.item.component.ItemContainerContents$Mutable' 30
+          p net.minecraft.world.item.component.GrowableMutableContainer 30
           javap -cp "$M" net.minecraft.world.level.Level | grep -i fuel
           javap -cp "$M" net.minecraft.server.MinecraftServer | grep -i fuel
           javap -cp "$M" net.minecraft.world.item.Item | grep -iE "remainder|use\(|appendHover|isBarVisible|getBarWidth|getBarColor|overrideOtherStackedOnMe|overrideStackedOnOther"
