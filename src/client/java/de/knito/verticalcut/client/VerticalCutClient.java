@@ -133,16 +133,20 @@ public class VerticalCutClient implements ClientModInitializer {
 		}
 
 		int fuel = CrtItem.fuel(crt);
-		EFFECTS.tick(client, fuel);
+		Integer pouch = crt.get(CrtComponents.POUCH_FUEL);
+		EFFECTS.tick(client, fuel, pouch != null);
 		CrtTier tier = ((CrtItem) crt.getItem()).tier;
 		EFFECTS.tickFlicker(client, tier, fuel > 0);
 		colorPicture = tier.color;
 
 		float share = (float) fuel / CrtItem.FUEL_UNITS;
 		decay = fuel == 0 ? 1f : Math.max(0f, 1f - share / DECAY_START);
+		// A pouch with fuel left means this isn't the real end yet: no snow.
+		if (fuel > 0 && pouch != null && pouch > 0) {
+			decay = 0;
+		}
 		showing = fuel > 0 || EFFECTS.dying();
 		// With a pouch the CRT only eats from the pouch, without one only inventory coal.
-		Integer pouch = crt.get(CrtComponents.POUCH_FUEL);
 		boolean spare = pouch != null ? pouch > 0 : hasCoal(client.player);
 		boolean noSpare = !client.player.getAbilities().instabuild && !spare;
 		if (pouch != null) {

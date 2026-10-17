@@ -62,11 +62,15 @@ final class CrtEffects {
 		stopBuzz(Minecraft.getInstance());
 	}
 
-	/** Called every client tick while a CRT is held and the cut is switched on. */
-	void tick(Minecraft client, int fuel) {
+	/**
+	 * Called every client tick while a CRT is held and the cut is switched on.
+	 * {@code pouch}: the CRT eats from a coal pouch, which sounds like a bundle
+	 * instead of gulp and burp.
+	 */
+	void tick(Minecraft client, int fuel, boolean pouch) {
 		if (lastFuel >= 0) {
 			if (fuel > lastFuel) {
-				hiccup(client);
+				hiccup(client, pouch);
 			} else if (fuel == 0 && lastFuel > 0) {
 				deathStart = System.nanoTime();
 			}
@@ -132,9 +136,13 @@ final class CrtEffects {
 		return flickerPower * (0.6f + random.nextFloat() * 0.4f);
 	}
 
-	private void hiccup(Minecraft client) {
+	private void hiccup(Minecraft client, boolean pouch) {
 		hiccupStart = System.nanoTime();
 		deathStart = -1;
+		if (pouch) {
+			play(client, SoundEvents.BUNDLE_REMOVE_ONE, 0.9f + random.nextFloat() * 0.2f, 0.8f);
+			return;
+		}
 		SoundEvent gulp = GULPS.get(random.nextInt(GULPS.size()));
 		play(client, gulp, 0.8f + random.nextFloat() * 0.45f, 0.7f);
 		burpIn = 6 + random.nextInt(7);
