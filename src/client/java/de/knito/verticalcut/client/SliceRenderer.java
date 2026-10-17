@@ -90,8 +90,9 @@ final class SliceRenderer {
 	 * @param mode coloring, see {@link SliceMode}
 	 * @param decay 0 = perfect picture, 1 = almost dead (grey, noisy, jittery)
 	 * @param laggy only refresh every {@link #LAG_REFRESH_TICKS}, even while moving
+	 * @param yaw direction of the cut (degrees, Minecraft yaw), usually the view's
 	 */
-	void tick(Minecraft client, int pixelsPerBlock, SliceMode mode, float decay, boolean laggy) {
+	void tick(Minecraft client, int pixelsPerBlock, SliceMode mode, float decay, boolean laggy, float yaw) {
 		LocalPlayer player = client.player;
 		ClientLevel level = client.level;
 		if (player == null || level == null) {
@@ -104,7 +105,6 @@ final class SliceRenderer {
 		}
 
 		BlockPos pos = player.blockPosition();
-		float yaw = player.getYRot();
 		ticksSinceUpdate++;
 
 		boolean moved = !pos.equals(lastPos);

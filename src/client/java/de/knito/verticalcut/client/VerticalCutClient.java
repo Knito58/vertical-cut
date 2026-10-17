@@ -2,11 +2,15 @@ package de.knito.verticalcut.client;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 import com.mojang.blaze3d.platform.InputConstants;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -21,6 +25,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.LodestoneTracker;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -43,7 +48,7 @@ import de.knito.verticalcut.VerticalCutMod;
  * Client entrypoint: key mappings, deciding what the cut may show (depends on
  * the held CRT and its fuel), and the HUD element that draws it.
  *
- * Only V (show/hide) is bound by default. Opacity and the settings screen
+ * Only V (show/hide) and K (compass lock) are bound by default. Opacity and the settings screen
  * have keys without a default binding.
  */
 public class VerticalCutClient implements ClientModInitializer {
@@ -56,6 +61,8 @@ public class VerticalCutClient implements ClientModInitializer {
 	private static final int RULER_TICK = 4;
 	private static final int RULER_MINOR_TICK = 2;
 	private static final float RULER_TEXT_SCALE = 0.5f;
+	/** Length of the compass needle in GUI pixels. */
+	private static final int NEEDLE_LENGTH = 6;
 	/** Width at which the Shift details in tooltips wrap. */
 	private static final int TOOLTIP_WIDTH = 200;
 	/** Fuel units that fill the coal bar beside the frame: 64 coals. */
@@ -71,6 +78,7 @@ public class VerticalCutClient implements ClientModInitializer {
 	private static KeyMapping toggleKey;
 	private static KeyMapping opacityKey;
 	private static KeyMapping settingsKey;
+	private static KeyMapping lockKey;
 
 	/** What the HUD should draw this tick, decided in the client tick. */
 	private static boolean showing;
@@ -85,6 +93,16 @@ public class VerticalCutClient implements ClientModInitializer {
 	private static boolean depthGauge;
 	/** Share of the coal bar beside the frame (stored fuel plus pouch); -1 = no pouch, no bar. */
 	private static float coalBar;
+	/** Compass module installed: the needle shows. */
+	private static boolean compass;
+	/** Direction the cut is fixed to (yaw in degrees), by the lock key or a lodestone; null = follows the view. */
+	private static Float cutYaw;
+	/** Locked by the lock key (snapped to north, east, south or west); null = not locked. */
+	private static Float lockedYaw;
+	/** Lodestone compass without a lodestone in this dimension: the needle spins. */
+	private static boolean needleSpins;
+	/** The lock key was pressed an odd number of times since the last tick. */
+	private static boolean lockPressed;
 	/** Last scanning state sent to the server; null = send again. */
 	private static ScanStatePayload sentScanState;
 
@@ -93,6 +111,8 @@ public class VerticalCutClient implements ClientModInitializer {
 		toggleKey = register("key.verticalcut.toggle", InputConstants.KEY_V);
 		opacityKey = register("key.verticalcut.opacity", InputConstants.UNKNOWN.getValue());
 		settingsKey = register("key.verticalcut.settings", InputConstants.UNKNOWN.getValue());
+		// L opens the advancements in vanilla, so K.
+		lockKey = register("key.verticalcut.lock", InputConstants.KEY_K);
 
 		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> sentScanState = null);
 		ClientTickEvents.END_CLIENT_TICK.register(VerticalCutClient::tick);
@@ -125,6 +145,7 @@ public class VerticalCutClient implements ClientModInitializer {
 				details.add(Component.translatable("verticalcut.tooltip.crt.pouch"));
 				details.add(Component.translatable("verticalcut.tooltip.crt.lightning_rod"));
 				details.add(Component.translatable("verticalcut.tooltip.crt.depth_gauge"));
+				details.add(Component.translatable("verticalcut.tooltip.crt.compass", lockKey.getTranslatedKeyMessage()));
 			}
 			if (crtItem.tier == CrtTier.STONE || crtItem.tier == CrtTier.COPPER) {
 				details.add(Component.translatable(prefix + "upgrade"));
@@ -168,6 +189,11 @@ public class VerticalCutClient implements ClientModInitializer {
 		lowOnCoal = false;
 		coalBar = -1;
 		depthGauge = false;
+		compass = false;
+		cutYaw = null;
+		needleSpins = false;
+		boolean lockToggled = lockPressed;
+		lockPressed = false;
 		if (client.player == null) {
 			return;
 		}
@@ -178,6 +204,7 @@ public class VerticalCutClient implements ClientModInitializer {
 		if (crt.isEmpty() || !config.visible) {
 			EFFECTS.reset();
 			INTERFERENCE.reset();
+			lockedYaw = null;
 			return;
 		}
 
@@ -188,6 +215,7 @@ public class VerticalCutClient implements ClientModInitializer {
 		EFFECTS.tickFlicker(client, tier, fuel > 0);
 		float interference = INTERFERENCE.tick(client);
 		depthGauge = CrtItem.hasDepthGauge(CrtItem.modules(crt));
+		tickCompass(client, CrtItem.compass(CrtItem.modules(crt)), lockToggled);
 		if (CrtItem.hasLightningRod(CrtItem.modules(crt))) {
 			interference *= ROD_LETS_THROUGH;
 		}
@@ -213,8 +241,60 @@ public class VerticalCutClient implements ClientModInitializer {
 			SliceMode mode = tier.color ? SliceMode.COLOR : tier.showsOres ? SliceMode.MONOCHROME : SliceMode.CAVES;
 			// A flicker is a short burst of the same snow a dying CRT shows.
 			float pictureDecay = Math.max(decay, EFFECTS.flickerStrength());
-			SLICE.tick(client, tier.pixelsPerBlock, mode, pictureDecay, tier.laggy);
+			float yaw = cutYaw != null ? cutYaw : client.player.getYRot();
+			SLICE.tick(client, tier.pixelsPerBlock, mode, pictureDecay, tier.laggy, yaw);
 		}
+	}
+
+	/**
+	 * Compass module: the lock key fixes the cut to the nearest of north,
+	 * east, south and west, or lets it follow the view again. A lodestone
+	 * compass points the cut at its lodestone instead; without one in this
+	 * dimension the needle spins and the cut follows the view.
+	 */
+	private static void tickCompass(Minecraft client, ItemStack stack, boolean lockToggled) {
+		compass = !stack.isEmpty();
+		LodestoneTracker lodestone = compass ? stack.get(DataComponents.LODESTONE_TRACKER) : null;
+		if (!compass || lodestone != null) {
+			lockedYaw = null;
+		}
+		if (!compass) {
+			return;
+		}
+		Player player = client.player;
+		if (lodestone != null) {
+			Optional<GlobalPos> target = lodestone.target();
+			if (target.isPresent() && target.get().dimension() == client.level.dimension()) {
+				BlockPos pos = target.get().pos();
+				double dx = pos.getX() + 0.5 - player.getX();
+				double dz = pos.getZ() + 0.5 - player.getZ();
+				cutYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
+			} else {
+				needleSpins = true;
+			}
+			return;
+		}
+		if (lockToggled) {
+			if (lockedYaw == null) {
+				lockedYaw = Math.floorMod(Math.round(player.getYRot() / 90f), 4) * 90f;
+				player.sendOverlayMessage(Component.translatable("verticalcut.lock.on",
+						Component.translatable("verticalcut.direction." + direction(lockedYaw))));
+			} else {
+				lockedYaw = null;
+				player.sendOverlayMessage(Component.translatable("verticalcut.lock.off"));
+			}
+		}
+		cutYaw = lockedYaw;
+	}
+
+	/** Name of a locked direction: yaw 0 looks south, 90 west, 180 north, 270 east. */
+	private static String direction(float yaw) {
+		return switch (Math.floorMod(Math.round(yaw / 90f), 4)) {
+			case 0 -> "south";
+			case 1 -> "west";
+			case 2 -> "north";
+			default -> "east";
+		};
 	}
 
 	private static boolean hasCoal(Player player) {
@@ -239,6 +319,9 @@ public class VerticalCutClient implements ClientModInitializer {
 		}
 		if (changed) {
 			config.save();
+		}
+		while (lockKey.consumeClick()) {
+			lockPressed = !lockPressed;
 		}
 		while (settingsKey.consumeClick()) {
 			client.gui.setScreen(new VerticalCutConfigScreen(null));
@@ -317,6 +400,10 @@ public class VerticalCutClient implements ClientModInitializer {
 			drawCoalBar(graphics, x, y, size, config.corner.right());
 		}
 
+		if (compass) {
+			drawNeedle(graphics, client, sx, sy, shown);
+		}
+
 		if (lowOnCoal && blinkOn) {
 			graphics.item(new ItemStack(Items.COAL), sx + shown - 18, sy + 2);
 		}
@@ -374,6 +461,53 @@ public class VerticalCutClient implements ClientModInitializer {
 			graphics.text(client.font, label, 0, 0, 0xFFFFFFFF, true);
 			graphics.pose().popMatrix();
 		}
+	}
+
+	/**
+	 * Compass needle at the top of the picture: where the cut points compared
+	 * to the view (straight up = ahead). Its tip is red in color pictures.
+	 * While locked, the direction's letter stands beside it.
+	 */
+	private static void drawNeedle(GuiGraphicsExtractor graphics, Minecraft client, int sx, int sy, int shown) {
+		double angle;
+		if (needleSpins) {
+			angle = (System.currentTimeMillis() % 1000) / 1000.0 * 2 * Math.PI;
+		} else if (cutYaw != null) {
+			angle = Math.toRadians(cutYaw - client.player.getYRot());
+		} else {
+			angle = 0;
+		}
+		int px = sx + shown / 2;
+		int py = sy + NEEDLE_LENGTH + 2;
+		int tip = colorPicture ? 0xFFFF4040 : 0xFFFFFFFF;
+		for (int pass = 0; pass < 2; pass++) {
+			for (int i = 0; i <= NEEDLE_LENGTH; i++) {
+				int x = px + (int) Math.round(Math.sin(angle) * i);
+				int y = py - (int) Math.round(Math.cos(angle) * i);
+				if (pass == 0) {
+					graphics.fill(x - 1, y - 1, x + 2, y + 2, 0xFF000000);
+				} else {
+					graphics.fill(x, y, x + 1, y + 1, i >= NEEDLE_LENGTH - 1 ? tip : 0xFFFFFFFF);
+				}
+			}
+		}
+		if (lockedYaw != null) {
+			String letter = Component.translatable("verticalcut.direction." + direction(lockedYaw) + ".short")
+					.getString();
+			drawSmallText(graphics, client, letter, px + NEEDLE_LENGTH + 3, py - NEEDLE_LENGTH);
+		}
+	}
+
+	/** Half-size text on a black plate, snapped to whole screen pixels. */
+	private static void drawSmallText(GuiGraphicsExtractor graphics, Minecraft client, String text, float x, float y) {
+		float guiScale = (float) client.getWindow().getGuiScale();
+		float textScale = Math.max(1, Math.round(guiScale * RULER_TEXT_SCALE)) / guiScale;
+		graphics.pose().pushMatrix();
+		graphics.pose().translate(Math.round(x * guiScale) / guiScale, Math.round(y * guiScale) / guiScale);
+		graphics.pose().scale(textScale, textScale);
+		graphics.fill(-1, -1, client.font.width(text), client.font.lineHeight - 1, 0xFF000000);
+		graphics.text(client.font, text, 0, 0, 0xFFFFFFFF, true);
+		graphics.pose().popMatrix();
 	}
 
 	/** The player in the picture (# = figure), drawn with a black outline. */
