@@ -6,14 +6,16 @@ package de.knito.verticalcut;
  */
 public enum CrtTier {
 	// Crude cave finder: no ores, a lagging picture, frequent flicker with a loud buzz.
-	STONE("stone_crt", 4, new int[0], false, false, true, 10, 30, 0.5f, 0.5f, 0),
-	COPPER("copper_crt", 4, new int[0], false, true, false, 60, 180, 0.4f, 0.25f, 1),
+	STONE("stone_crt", 4, new int[0], false, false, true, 10, 30, 0.5f, 0.5f, 0, false),
+	COPPER("copper_crt", 4, new int[0], false, true, false, 60, 180, 0.4f, 0.25f, 1, false),
 	// First color picture, sees twice as far (64x64 blocks), no flicker of its own.
-	IRON("iron_crt", 2, new int[0], true, true, false, 0, 0, 0f, 0f, 2),
+	IRON("iron_crt", 2, new int[0], true, true, false, 0, 0, 0f, 0f, 2, false),
 	// Like iron, but zooms in to see things closer: 32x32 blocks.
-	GOLD("gold_crt", 2, new int[] {4, 2}, true, true, false, 0, 0, 0f, 0f, 2),
+	GOLD("gold_crt", 2, new int[] {4, 2}, true, true, false, 0, 0, 0f, 0f, 2, false),
 	// Like gold, but also zooms out to 128x128 blocks, and 3 module slots.
-	DIAMOND("diamond_crt", 2, new int[] {4, 2, 1}, true, true, false, 0, 0, 0f, 0f, 3);
+	DIAMOND("diamond_crt", 2, new int[] {4, 2, 1}, true, true, false, 0, 0, 0f, 0f, 3, false),
+	// The heartbeat of what moves in the dark: mobs as dots; immune to interference.
+	NETHERITE("netherite_crt", 2, new int[] {4, 2, 1}, true, true, false, 0, 0, 0f, 0f, 3, true);
 
 	public final String itemName;
 	public final int pixelsPerBlock;
@@ -32,10 +34,12 @@ public enum CrtTier {
 	public final float buzzVolume;
 	/** How many modules (coal pouch, ...) fit into this CRT. */
 	public final int moduleSlots;
+	/** Netherite: shows mobs and players near the cut, and no interference gets through. */
+	public final boolean netherite;
 
 	CrtTier(String itemName, int pixelsPerBlock, int[] zoomSteps, boolean color, boolean showsOres,
 			boolean laggy, int flickerMinSeconds, int flickerMaxSeconds, float buzzChance, float buzzVolume,
-			int moduleSlots) {
+			int moduleSlots, boolean netherite) {
 		this.itemName = itemName;
 		this.pixelsPerBlock = pixelsPerBlock;
 		this.zoomSteps = zoomSteps;
@@ -47,6 +51,7 @@ public enum CrtTier {
 		this.buzzChance = buzzChance;
 		this.buzzVolume = buzzVolume;
 		this.moduleSlots = moduleSlots;
+		this.netherite = netherite;
 	}
 
 	public boolean canZoom() {

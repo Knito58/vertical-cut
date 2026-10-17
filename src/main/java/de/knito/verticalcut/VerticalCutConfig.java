@@ -72,6 +72,8 @@ public final class VerticalCutConfig {
 	public FigureColor figureColor = FigureColor.YELLOW;
 	/** Zoom chosen with the zoom key, in pixels per block; CRTs that can't show it use their own. */
 	public int zoom = 2;
+	/** Colors for red-green color blind players: blue instead of green. */
+	public boolean colorBlind = false;
 
 	public static VerticalCutConfig get() {
 		if (instance == null) {

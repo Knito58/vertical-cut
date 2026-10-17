@@ -81,6 +81,11 @@ public class VerticalCutConfigScreen extends Screen {
 				.withValues(FigureColor.values())
 				.create(x, y, BUTTON_WIDTH, 20, Component.translatable("verticalcut.config.figure_color"),
 						(button, value) -> config.figureColor = value));
+		y += ROW;
+
+		addRenderableWidget(CycleButton.onOffBuilder(config.colorBlind)
+				.create(x, y, BUTTON_WIDTH, 20, Component.translatable("verticalcut.config.color_blind"),
+						(button, value) -> config.colorBlind = value));
 		y += ROW + 8;
 
 		addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> onClose())
