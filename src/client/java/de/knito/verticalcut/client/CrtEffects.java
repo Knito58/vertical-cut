@@ -154,6 +154,12 @@ final class CrtEffects {
 		}
 	}
 
+	/** A short burst of snow while the picture refocuses after a zoom change. */
+	void refocus() {
+		flickerTicks = 8;
+		flickerPower = 0.7f;
+	}
+
 	/** Snow strength for the picture this tick, varying a little; 0 when not flickering. */
 	float flickerStrength() {
 		// Very close to a source, a light snow stays on between the bursts.

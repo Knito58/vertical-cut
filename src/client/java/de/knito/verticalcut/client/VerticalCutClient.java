@@ -50,7 +50,7 @@ import de.knito.verticalcut.client.mixin.ConditionalItemModelPropertiesAccessor;
  * Client entrypoint: key mappings, deciding what the cut may show (depends on
  * the held CRT and its fuel), and the HUD element that draws it.
  *
- * Only V (show/hide), K (compass lock) and J (spyglass) are bound by default. Opacity and the settings screen
+ * Only V (show/hide), K (compass lock), J (spyglass) and B (zoom) are bound by default. Opacity and the settings screen
  * have keys without a default binding.
  */
 public class VerticalCutClient implements ClientModInitializer {
@@ -88,6 +88,7 @@ public class VerticalCutClient implements ClientModInitializer {
 	private static KeyMapping settingsKey;
 	private static KeyMapping lockKey;
 	private static KeyMapping spyglassKey;
+	private static KeyMapping zoomKey;
 
 	/** What the HUD should draw this tick, decided in the client tick. */
 	private static boolean showing;
@@ -118,6 +119,8 @@ public class VerticalCutClient implements ClientModInitializer {
 	private static boolean deepView;
 	/** The spyglass key was pressed an odd number of times since the last tick. */
 	private static boolean spyglassPressed;
+	/** The zoom key was pressed an odd number of times since the last tick. */
+	private static boolean zoomPressed;
 	/** Last scanning state sent to the server; null = send again. */
 	private static ScanStatePayload sentScanState;
 
@@ -129,6 +132,8 @@ public class VerticalCutClient implements ClientModInitializer {
 		// L opens the advancements in vanilla, so K.
 		lockKey = register("key.verticalcut.lock", InputConstants.KEY_K);
 		spyglassKey = register("key.verticalcut.spyglass", InputConstants.KEY_J);
+		// B was the zoom key of the old mod.
+		zoomKey = register("key.verticalcut.zoom", InputConstants.KEY_B);
 
 		ConditionalItemModelPropertiesAccessor.verticalcut$idMapper().put(VerticalCut.id("on_track"), OnTrack.MAP_CODEC);
 		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> sentScanState = null);
@@ -166,7 +171,10 @@ public class VerticalCutClient implements ClientModInitializer {
 				details.add(Component.translatable("verticalcut.tooltip.crt.compass", lockKey.getTranslatedKeyMessage()));
 				details.add(Component.translatable("verticalcut.tooltip.crt.spyglass", spyglassKey.getTranslatedKeyMessage()));
 			}
-			if (crtItem.tier == CrtTier.STONE || crtItem.tier == CrtTier.COPPER) {
+			if (crtItem.tier.zoomedInPixelsPerBlock > 0) {
+				details.add(Component.translatable("verticalcut.tooltip.crt.zoom", zoomKey.getTranslatedKeyMessage()));
+			}
+			if (crtItem.tier == CrtTier.STONE || crtItem.tier == CrtTier.COPPER || crtItem.tier == CrtTier.IRON) {
 				details.add(Component.translatable(prefix + "upgrade"));
 			}
 			addDetails(lines, details);
@@ -176,6 +184,8 @@ public class VerticalCutClient implements ClientModInitializer {
 			addDetails(lines, List.of(Component.translatable("verticalcut.tooltip.depth_gauge.use")));
 		} else if (stack.is(VerticalCutMod.IRON_TUBE)) {
 			addDetails(lines, List.of(Component.translatable("verticalcut.tooltip.iron_tube.use")));
+		} else if (stack.is(VerticalCutMod.GOLD_TUBE)) {
+			addDetails(lines, List.of(Component.translatable("verticalcut.tooltip.gold_tube.use")));
 		}
 	}
 
@@ -215,6 +225,8 @@ public class VerticalCutClient implements ClientModInitializer {
 		lockPressed = false;
 		boolean spyglassToggled = spyglassPressed;
 		spyglassPressed = false;
+		boolean zoomToggled = zoomPressed;
+		zoomPressed = false;
 		if (client.player == null) {
 			return;
 		}
@@ -244,6 +256,16 @@ public class VerticalCutClient implements ClientModInitializer {
 		}
 		EFFECTS.tickInterference(client, interference, fuel > 0);
 		colorPicture = tier.color;
+		if (zoomToggled && tier.zoomedInPixelsPerBlock > 0 && fuel > 0) {
+			config.zoomedIn = !config.zoomedIn;
+			config.save();
+			// Like an old TV changing channels: a moment of snow and a click.
+			EFFECTS.refocus();
+			CrtEffects.play(client, SoundEvents.UI_BUTTON_CLICK.value(), 0.8f + RANDOM.nextFloat() * 0.3f, 0.3f);
+		}
+		int pixelsPerBlock = tier.zoomedInPixelsPerBlock > 0 && config.zoomedIn
+				? tier.zoomedInPixelsPerBlock
+				: tier.pixelsPerBlock;
 
 		float share = (float) fuel / CrtItem.FUEL_UNITS;
 		decay = fuel == 0 ? 1f : Math.max(0f, 1f - share / DECAY_START);
@@ -270,7 +292,7 @@ public class VerticalCutClient implements ClientModInitializer {
 			float pictureDecay = Math.max(decay, EFFECTS.flickerStrength());
 			float yaw = cutYaw != null ? cutYaw : client.player.getYRot();
 			Finder finder = tier.showsOres ? Finder.of(CrtItem.finderSamples(CrtItem.modules(crt))) : Finder.NONE;
-			SLICE.tick(client, tier.pixelsPerBlock, mode, pictureDecay, tier.laggy, yaw, deepView, finder);
+			SLICE.tick(client, pixelsPerBlock, mode, pictureDecay, tier.laggy, yaw, deepView, finder);
 		}
 	}
 
@@ -399,6 +421,9 @@ public class VerticalCutClient implements ClientModInitializer {
 		}
 		while (spyglassKey.consumeClick()) {
 			spyglassPressed = !spyglassPressed;
+		}
+		while (zoomKey.consumeClick()) {
+			zoomPressed = !zoomPressed;
 		}
 		while (settingsKey.consumeClick()) {
 			client.gui.setScreen(new VerticalCutConfigScreen(null));

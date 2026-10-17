@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_iron_crt": {
+      "conditions": {
+        "items": [
+          {
+            "items": "verticalcut:iron_crt"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipes": "verticalcut:gold_crt_smithing"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_iron_crt"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "verticalcut:gold_crt_smithing"
+    ]
+  }
+}
