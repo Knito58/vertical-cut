@@ -17,4 +17,6 @@ jobs:
           set +e +o pipefail
           M=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-common.jar
           C=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-client-only.jar
-          javap -c -p -cp "$M:$C" net.minecraft.client.Options | grep -E 'String key\.|KEY_|bipush|sipush' | grep -vE 'key\.(categories|keyboard)' | sed 's/^ *[0-9]*: //' | head -200
+          for f in story/root story/mine_stone; do unzip -p "$M" data/minecraft/advancement/$f.json; echo; done
+          unzip -l "$M" | grep -i 'advancement' | grep -i background | head
+          unzip -l "$C" | grep -i 'advancements/backgrounds' | head
