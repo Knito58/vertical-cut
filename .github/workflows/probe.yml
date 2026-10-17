@@ -6,11 +6,18 @@ jobs:
   probe:
     runs-on: ubuntu-24.04
     steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'microsoft'
+      - run: chmod +x ./gradlew && ./gradlew build -q
       - name: probe
         run: |
           set +e +o pipefail
-          for c in metal-bundles/26.3.3 metal-bundles/TQYgbkWW puzzles-lib/26.3.15 puzzles-lib/68hLXNWE forge-config-api-port/26.3.1 forge-config-api-port/JpKvrr9J; do
-            s=${c%/*}; v=${c#*/}
-            curl -sSL -o t.jar "https://api.modrinth.com/maven/maven/modrinth/$s/$v/$s-$v.jar"
-            echo "$c: $(unzip -l t.jar | grep -oE 'fabric.mod.json|neoforge.mods.toml|META-INF/mods.toml' | head -1)"
+          M=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-common.jar
+          C=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-client-only.jar
+          for cl in net.minecraft.client.Minecraft net.minecraft.client.gui.screens.Screen net.minecraft.client.KeyMapping com.mojang.blaze3d.platform.InputConstants; do
+            echo "== $cl"; javap -cp "$C:$M" $cl | grep -iE "shift|TranslatedKeyMessage|isKeyDown" 
           done
+          grep -rl "hasShiftDown" /dev/null
