@@ -1,8 +1,9 @@
-# Pushing a tag like v1.0.0 builds the mod and publishes it as a GitHub release.
+# Pushing to the release branch builds the mod and publishes it as a GitHub release,
+# tagged with the version from gradle.properties.
 name: release
 on:
   push:
-    tags: ['v*']
+    branches: [release]
 
 permissions:
   contents: write
@@ -19,11 +20,14 @@ jobs:
       - run: chmod +x ./gradlew && ./gradlew build && rm -f build/libs/*-sources.jar
       - name: release notes from the changelog
         run: |
-          v="${GITHUB_REF_NAME#v}"
+          v=$(grep '^version=' gradle.properties | cut -d= -f2)
+          echo "VERSION=$v" >> "$GITHUB_ENV"
           awk -v h="## $v" 'index($0,h)==1{f=1;next} /^## /{f=0} f' CHANGELOG.md > notes.md
           cat notes.md
       - uses: softprops/action-gh-release@v2
         with:
-          name: Vertical Cut ${{ github.ref_name }} for Minecraft 26.3
+          tag_name: v${{ env.VERSION }}
+          target_commitish: ${{ github.sha }}
+          name: Vertical Cut ${{ env.VERSION }} for Minecraft 26.3
           body_path: notes.md
           files: build/libs/*.jar
