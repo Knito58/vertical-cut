@@ -10,6 +10,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -114,6 +115,24 @@ public class CrtItem extends Item {
 	public static ItemStack held(Player player) {
 		InteractionHand hand = heldHand(player);
 		return hand == null ? ItemStack.EMPTY : player.getItemInHand(hand);
+	}
+
+	/**
+	 * The CRT that scans: the held one, else (unless it must be in hand) the
+	 * first one in the inventory; {@link ItemStack#EMPTY} if there is none.
+	 */
+	public static ItemStack active(Player player, boolean inHand) {
+		ItemStack held = held(player);
+		if (!held.isEmpty() || inHand) {
+			return held;
+		}
+		Inventory inventory = player.getInventory();
+		for (int i = 0; i < inventory.getContainerSize(); i++) {
+			if (inventory.getItem(i).getItem() instanceof CrtItem) {
+				return inventory.getItem(i);
+			}
+		}
+		return ItemStack.EMPTY;
 	}
 
 	public static InteractionHand heldHand(Player player) {

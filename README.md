@@ -61,11 +61,12 @@ This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
 - Hold **Shift** over a CRT or the tube for a short explanation.
 - Stone and Copper CRT show 32×32 blocks.
 - **V** shows or hides the cut. That is the only key bound by default.
-- Settings (needs CRT on/off, corner, distance from edge, size, opacity, CRT sounds,
-  seconds per coal, zoom, color of the stick figure that shows you) are in
+- Settings (CRT must be in hand, corner, distance from edge, size, opacity, CRT sounds,
+  seconds per coal, color of the stick figure that shows you) are in
   **Mod Menu → Vertical Cut → Configure** and are saved in `config/verticalcut.json`.
-  With "Needs CRT in hand" off, the cut works without a device, in color, at the configured zoom.
-- Keys for opacity, zoom and the settings screen exist but are unbound; bind them in
+  With "CRT must be in hand" off, a CRT anywhere in the inventory scans, by the same rules
+  (fuel, modules). There is always a CRT needed.
+- Keys for opacity and the settings screen exist but are unbound; bind them in
   Options → Controls → Key Binds → Vertical Cut if you want them.
 
 ## Translations

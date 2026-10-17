@@ -6,13 +6,15 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 /**
- * Client to server: whether the player currently shows the cut. The server
- * only burns fuel while it does, so hiding the cut with V saves coal.
+ * Client to server: whether the player currently shows the cut, and whether
+ * the CRT must be in hand (else any CRT in the inventory works). The server
+ * only burns fuel while the cut shows, so hiding it with V saves coal.
  */
-public record ScanStatePayload(boolean scanning) implements CustomPacketPayload {
+public record ScanStatePayload(boolean scanning, boolean inHand) implements CustomPacketPayload {
 	public static final Type<ScanStatePayload> TYPE = new Type<>(VerticalCut.id("scan_state"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, ScanStatePayload> CODEC =
-			StreamCodec.composite(ByteBufCodecs.BOOL, ScanStatePayload::scanning, ScanStatePayload::new);
+			StreamCodec.composite(ByteBufCodecs.BOOL, ScanStatePayload::scanning, ByteBufCodecs.BOOL,
+					ScanStatePayload::inHand, ScanStatePayload::new);
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {

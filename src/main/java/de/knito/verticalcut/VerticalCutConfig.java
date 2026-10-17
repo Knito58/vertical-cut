@@ -53,8 +53,8 @@ public final class VerticalCutConfig {
 	private static VerticalCutConfig instance;
 
 	public boolean visible = true;
-	/** When on, the cut only works with a fueled CRT in hand. Off = free tool, e.g. for creative mode. */
-	public boolean requireDevice = true;
+	/** On: the CRT must be held. Off: any CRT in the inventory scans (same fuel and modules rules). */
+	public boolean crtInHand = true;
 	public Corner corner = Corner.TOP_LEFT;
 	/** Distance from the screen edges, in GUI pixels. */
 	public int margin = 4;
@@ -67,8 +67,6 @@ public final class VerticalCutConfig {
 	 * multiplayer the server's config file decides.
 	 */
 	public int secondsPerCoal = 240;
-	/** 1 = one pixel per block, 2 = two pixels per block. */
-	public int zoom = 1;
 	/** Gulp and burp when the CRT swallows a coal. Client only. */
 	public boolean sounds = true;
 	public FigureColor figureColor = FigureColor.YELLOW;
@@ -118,7 +116,6 @@ public final class VerticalCutConfig {
 		margin = Math.clamp(margin, 0, MAX_MARGIN);
 		size = Math.clamp(size, MIN_SIZE, MAX_SIZE);
 		opacity = Math.clamp(opacity, 1, OPACITY_LEVELS);
-		zoom = Math.clamp(zoom, 1, 2);
 		secondsPerCoal = Math.clamp(secondsPerCoal, MIN_SECONDS_PER_COAL, MAX_SECONDS_PER_COAL);
 	}
 }
