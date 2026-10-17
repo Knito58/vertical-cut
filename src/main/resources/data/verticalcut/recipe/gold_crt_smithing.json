@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:smithing_transform",
+  "addition": "verticalcut:gold_tube",
+  "base": "verticalcut:iron_crt",
+  "result": {
+    "id": "verticalcut:gold_crt"
+  },
+  "template": "minecraft:torch"
+}
