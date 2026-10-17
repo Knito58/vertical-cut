@@ -36,7 +36,7 @@
 	"verticalcut.tooltip.gold_crt.picture": "Steady picture without flicker of its own.",
 	"verticalcut.tooltip.gold_crt.upgrade": "Upgrade on the smithing table with a torch and a Diamond Picture Tube.",
 	"verticalcut.tooltip.diamond_crt.shows": "Shows ores in color, 32, 64 or 128 blocks wide.",
-	"verticalcut.tooltip.diamond_crt.picture": "Thick picture: also shows ores and chests up to 2 blocks beside the cut, a little darker.",
+	"verticalcut.tooltip.diamond_crt.picture": "Steady picture without flicker of its own.",
 	"verticalcut.tooltip.diamond_tube.use": "Turns a Gold CRT into a Diamond CRT on the smithing table, with a torch as template.",
 	"verticalcut.tooltip.gold_tube.use": "Turns an Iron CRT into a Gold CRT on the smithing table, with a torch as template.",
 	"verticalcut.tooltip.crt.zoom": "%s zooms in and out.",

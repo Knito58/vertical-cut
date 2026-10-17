@@ -292,7 +292,7 @@ public class VerticalCutClient implements ClientModInitializer {
 			float pictureDecay = Math.max(decay, EFFECTS.flickerStrength());
 			float yaw = cutYaw != null ? cutYaw : client.player.getYRot();
 			Finder finder = tier.showsOres ? Finder.of(CrtItem.finderSamples(CrtItem.modules(crt))) : Finder.NONE;
-			SLICE.tick(client, pixelsPerBlock, mode, pictureDecay, tier.laggy, yaw, deepView, finder, tier.thickness);
+			SLICE.tick(client, pixelsPerBlock, mode, pictureDecay, tier.laggy, yaw, deepView, finder);
 		}
 	}
 
