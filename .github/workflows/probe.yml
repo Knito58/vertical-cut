@@ -18,22 +18,12 @@ jobs:
           C=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-client-only.jar
           p() { echo "=== $1"; javap -cp "$C:$M" "$1" 2>&1 | grep -v 'lambda\$' | grep -vE "^\s*$" | head -${2:-80} || true; }
           set +e +o pipefail
-          unzip -l $M | grep -iE "FuelValues|ItemStackTemplate" | head
-          F=$(unzip -l $M | grep -oE "net/minecraft/[A-Za-z/]*FuelValues.class" | head -1 | sed 's/.class$//; s#/#.#g')
-          p $F 30
-          p net.minecraft.world.item.ItemStackTemplate 40
-          p 'net.minecraft.world.item.component.ItemContainerContents$Mutable' 30
-          p net.minecraft.world.item.component.GrowableMutableContainer 30
-          javap -cp "$M" net.minecraft.world.level.Level | grep -i fuel
-          javap -cp "$M" net.minecraft.server.MinecraftServer | grep -i fuel
-          javap -cp "$M" net.minecraft.world.item.Item | grep -iE "remainder|use\(|appendHover|isBarVisible|getBarWidth|getBarColor|overrideOtherStackedOnMe|overrideStackedOnOther"
-          javap -cp "$M" net.minecraft.world.item.ItemStack | grep -iE "remainder"
-          p net.minecraft.world.inventory.Slot 80
-          javap -cp "$M" net.minecraft.world.inventory.AbstractContainerMenu | grep -iE "SLOT_SIZE|addStandardInventorySlots|addInventory|moveItemStackTo|quickMoveStack|stillValid|removed|clicked|broadcast"
-          javap -cp "$M" net.minecraft.world.entity.player.Inventory | grep -iE "selected|getSelected|INVENTORY_SIZE|SLOT_OFFHAND|add\(|placeItemBackInInventory"
-          javap -cp "$M" net.minecraft.world.entity.player.Player | grep -iE "openMenu|isShiftKeyDown|isCrouching"
-          javap -cp "$M" net.minecraft.world.entity.Entity | grep -iE "isShiftKeyDown|isCrouching|isSecondaryUseActive"
-          javap -cp "$M" net.minecraft.world.InteractionResult | grep -iE "static final"
-          p net.minecraft.client.gui.screens.inventory.AbstractContainerScreen 90
-          p net.minecraft.world.Container 50
+          unzip -l $M | grep -i fuel | head -20
+          javap -cp "$M" net.minecraft.core.component.DataComponents | grep -i fuel
+          javap -p -cp "$M" net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity | grep -iE "fuel|burn"
+          javap -cp "$M" net.minecraft.tags.ItemTags | grep -i fuel
+          unzip -l $M | grep -iE "data/minecraft/.*fuel" | head
+          javap -cp "$M" net.minecraft.world.inventory.ContainerInput | head -20
+          javap -cp "$M" net.minecraft.world.item.ItemStackTemplate | head -3
+          javap -cp "$M" net.minecraft.world.level.Level | grep -iE "registryAccess|fuel"
           for f in $(find $HOME/.gradle/caches -name "fabric-item-api-v1*.jar" | head -1); do unzip -l $f | grep -i tooltip; done
