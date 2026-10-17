@@ -1,6 +1,14 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "verticalcut:item/iron_crt"
+    "type": "minecraft:condition",
+    "property": "verticalcut:on_track",
+    "on_true": {
+      "type": "minecraft:model",
+      "model": "verticalcut:item/iron_crt_on_track"
+    },
+    "on_false": {
+      "type": "minecraft:model",
+      "model": "verticalcut:item/iron_crt"
+    }
   }
 }

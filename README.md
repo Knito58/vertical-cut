@@ -58,7 +58,8 @@ This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
   of the interference.
 - **Compass module**: a compass in a module slot. **K** locks the cut in the direction you look
   (any angle, e.g. a diagonal tunnel), K again lets it follow your view. A needle at the top of
-  the picture shows where the cut points and turns green with a clink when you face that way.
+  the picture shows where the cut points and turns green and thick with a clink when you face
+  that way; the antennas of the CRT in your hand light up as well.
   A lodestone compass points the cut at its lodestone.
 - **Depth Gauge module** (3 sticks in a column, 3 copper nuggets beside them): a white ruler
   along the left edge of the picture with the Y level at your feet and every 8 blocks above and below.
