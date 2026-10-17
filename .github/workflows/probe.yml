@@ -17,10 +17,6 @@ jobs:
           set +e +o pipefail
           M=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-common.jar
           C=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-client-only.jar
-          javap -p -cp "$M" net.minecraft.world.inventory.Slot | grep -E " (x|y|index);"
-          javap -p -cp "$C:$M" net.minecraft.client.gui.screens.inventory.AbstractContainerScreen | grep -E "imageHeight|inventoryLabelY|titleLabelY|init\(|extractLabels"
-          javap -p -cp "$C:$M" net.minecraft.client.gui.Font | grep -E "split|wordWrapHeight|width\(" | head
-          for slug in jei; do
-            curl -sS -G "https://api.modrinth.com/v2/project/$slug/version" --data-urlencode 'loaders=["fabric"]' --data-urlencode 'game_versions=["26.3"]' | jq -r '.[0:3][] | "\(.version_number) | \(.id) | \(.files[0].filename) | \(.date_published)"'
-          done
-          curl -sS https://maven.blamejared.com/mezz/jei/ 2>/dev/null | grep -o 'jei-26[^/"]*' | sort -u | tail
+          javap -p -cp "$C:$M" net.minecraft.client.gui.screens.inventory.AbstractContainerScreen | grep -E "AbstractContainerScreen\(|imageWidth|leftPos|topPos"
+          javap -p -cp "$M" net.minecraft.world.inventory.Slot | grep -E "container|Slot\("
+          javap -p -cp "$M" net.minecraft.world.inventory.AbstractContainerMenu | grep -E " slots;"
