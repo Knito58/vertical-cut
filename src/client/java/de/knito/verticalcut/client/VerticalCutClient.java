@@ -44,6 +44,7 @@ import de.knito.verticalcut.ScanStatePayload;
 import de.knito.verticalcut.VerticalCut;
 import de.knito.verticalcut.VerticalCutConfig;
 import de.knito.verticalcut.VerticalCutMod;
+import de.knito.verticalcut.client.mixin.ConditionalItemModelPropertiesAccessor;
 
 /**
  * Client entrypoint: key mappings, deciding what the cut may show (depends on
@@ -123,6 +124,7 @@ public class VerticalCutClient implements ClientModInitializer {
 		// L opens the advancements in vanilla, so K.
 		lockKey = register("key.verticalcut.lock", InputConstants.KEY_K);
 
+		ConditionalItemModelPropertiesAccessor.verticalcut$idMapper().put(VerticalCut.id("on_track"), OnTrack.MAP_CODEC);
 		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> sentScanState = null);
 		ClientTickEvents.END_CLIENT_TICK.register(VerticalCutClient::tick);
 		MenuScreens.register(VerticalCutMod.CRT_MENU, CrtScreen::new);
@@ -299,6 +301,11 @@ public class VerticalCutClient implements ClientModInitializer {
 		updateAligned(client);
 	}
 
+	/** Whether the player faces along a fixed cut; the CRT's antennas light up. */
+	static boolean onTrack() {
+		return aligned;
+	}
+
 	/** Clinks once when the view comes to point along the fixed cut. */
 	private static void updateAligned(Minecraft client) {
 		if (cutYaw == null) {
@@ -312,8 +319,8 @@ public class VerticalCutClient implements ClientModInitializer {
 			int note = CHIME_NOTES[RANDOM.nextInt(CHIME_NOTES.length)];
 			float pitch = (float) Math.pow(2, (note - 12) / 12.0);
 			// The amethyst chime alone is too quiet; the note block chime carries it.
-			CrtEffects.play(client, SoundEvents.AMETHYST_BLOCK_CHIME, pitch, 1f);
-			CrtEffects.play(client, SoundEvents.NOTE_BLOCK_CHIME.value(), pitch, 0.6f);
+			CrtEffects.play(client, SoundEvents.AMETHYST_BLOCK_CHIME, pitch, 0.8f);
+			CrtEffects.play(client, SoundEvents.NOTE_BLOCK_CHIME.value(), pitch, 0.35f);
 		} else if (aligned && off > UNALIGNED_DEGREES) {
 			aligned = false;
 		}
@@ -503,9 +510,10 @@ public class VerticalCutClient implements ClientModInitializer {
 
 	/**
 	 * Compass needle at the top of the picture: where the cut points compared
-	 * to the view (straight up = ahead). Its tip is red in color pictures;
-	 * all green while the view is aligned with a fixed cut. While locked, the
-	 * locked bearing stands beside it.
+	 * to the view (straight up = ahead). Its tip is red in color pictures.
+	 * While the view is aligned with a fixed cut it is bright green and twice
+	 * as thick, so it also stands out for red-green color blind players.
+	 * While locked, the locked bearing stands beside it.
 	 */
 	private static void drawNeedle(GuiGraphicsExtractor graphics, Minecraft client, int sx, int sy, int shown) {
 		double angle;
@@ -518,16 +526,16 @@ public class VerticalCutClient implements ClientModInitializer {
 		}
 		int px = sx + shown / 2;
 		int py = sy + NEEDLE_LENGTH + 2;
-		int body = aligned ? 0xFF40FF40 : 0xFFFFFFFF;
+		int body = aligned ? 0xFFA0FF60 : 0xFFFFFFFF;
 		int tip = aligned ? body : colorPicture ? 0xFFFF4040 : 0xFFFFFFFF;
 		for (int pass = 0; pass < 2; pass++) {
 			for (int i = 0; i <= NEEDLE_LENGTH; i++) {
 				int x = px + (int) Math.round(Math.sin(angle) * i);
 				int y = py - (int) Math.round(Math.cos(angle) * i);
 				if (pass == 0) {
-					graphics.fill(x - 1, y - 1, x + 2, y + 2, 0xFF000000);
+					graphics.fill(x - 1, y - 1, x + (aligned ? 3 : 2), y + 2, 0xFF000000);
 				} else {
-					graphics.fill(x, y, x + 1, y + 1, i >= NEEDLE_LENGTH - 1 ? tip : body);
+					graphics.fill(x, y, x + (aligned ? 2 : 1), y + 1, i >= NEEDLE_LENGTH - 1 ? tip : body);
 				}
 			}
 		}

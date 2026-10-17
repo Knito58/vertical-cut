@@ -1,0 +1,11 @@
+{
+	"required": true,
+	"package": "de.knito.verticalcut.client.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"ConditionalItemModelPropertiesAccessor"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
