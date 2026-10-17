@@ -51,6 +51,9 @@ public class VerticalCutClient implements ClientModInitializer {
 
 	/** Below this share of a full tank the picture starts to decay. */
 	private static final float DECAY_START = 0.1f;
+	/** Blocks between two marks of the Depth Gauge ruler. */
+	private static final int RULER_STEP = 8;
+	private static final int RULER_TICK = 4;
 	/** Width at which the Shift details in tooltips wrap. */
 	private static final int TOOLTIP_WIDTH = 200;
 	/** Fuel units that fill the coal bar beside the frame: 64 coals. */
@@ -77,6 +80,8 @@ public class VerticalCutClient implements ClientModInitializer {
 	private static boolean outOfCoal;
 	/** Picture is decaying and there is no spare coal: small coal warning in the corner. */
 	private static boolean lowOnCoal;
+	/** The held CRT has a Depth Gauge module: draw the Y ruler. */
+	private static boolean depthGauge;
 	/** Share of the coal bar beside the frame (stored fuel plus pouch); -1 = no pouch, no bar. */
 	private static float coalBar;
 	/** Last scanning state sent to the server; null = send again. */
@@ -119,6 +124,7 @@ public class VerticalCutClient implements ClientModInitializer {
 				details.add(Component.translatable("verticalcut.tooltip.crt.slots", crtItem.tier.moduleSlots));
 				details.add(Component.translatable("verticalcut.tooltip.crt.pouch"));
 				details.add(Component.translatable("verticalcut.tooltip.crt.lightning_rod"));
+				details.add(Component.translatable("verticalcut.tooltip.crt.depth_gauge"));
 			}
 			if (crtItem.tier == CrtTier.STONE || crtItem.tier == CrtTier.COPPER) {
 				details.add(Component.translatable(prefix + "upgrade"));
@@ -126,6 +132,8 @@ public class VerticalCutClient implements ClientModInitializer {
 			addDetails(lines, details);
 		} else if (stack.is(VerticalCutMod.COPPER_TUBE)) {
 			addDetails(lines, List.of(Component.translatable("verticalcut.tooltip.copper_tube.use")));
+		} else if (stack.is(VerticalCutMod.DEPTH_GAUGE)) {
+			addDetails(lines, List.of(Component.translatable("verticalcut.tooltip.depth_gauge.use")));
 		} else if (stack.is(VerticalCutMod.IRON_TUBE)) {
 			addDetails(lines, List.of(Component.translatable("verticalcut.tooltip.iron_tube.use")));
 		}
@@ -159,6 +167,7 @@ public class VerticalCutClient implements ClientModInitializer {
 		outOfCoal = false;
 		lowOnCoal = false;
 		coalBar = -1;
+		depthGauge = false;
 		if (client.player == null) {
 			return;
 		}
@@ -188,6 +197,7 @@ public class VerticalCutClient implements ClientModInitializer {
 		CrtTier tier = ((CrtItem) crt.getItem()).tier;
 		EFFECTS.tickFlicker(client, tier, fuel > 0);
 		float interference = INTERFERENCE.tick(client);
+		depthGauge = CrtItem.hasDepthGauge(CrtItem.modules(crt));
 		if (CrtItem.hasLightningRod(CrtItem.modules(crt))) {
 			interference *= ROD_LETS_THROUGH;
 		}
@@ -312,6 +322,9 @@ public class VerticalCutClient implements ClientModInitializer {
 		int tex = SliceRenderer.SIZE;
 		graphics.blit(RenderPipelines.GUI_TEXTURED, SLICE.textureId, sx, sy, 0, 0, shown, shown, tex, tex, tex, tex,
 				(pictureAlpha << 24) | 0xFFFFFF);
+		if (depthGauge) {
+			drawRuler(graphics, client, sx, sy, shown, config.corner.right());
+		}
 		graphics.outline(sx - 1, sy - 1, shown + 2, shown + 2, 0xFFAAAAAA);
 		if (coalBar >= 0) {
 			drawCoalBar(graphics, x, y, size, config.corner.right());
@@ -319,6 +332,36 @@ public class VerticalCutClient implements ClientModInitializer {
 
 		if (lowOnCoal && blinkOn) {
 			graphics.item(new ItemStack(Items.COAL), sx + shown - 18, sy + 2);
+		}
+	}
+
+	/**
+	 * Depth Gauge: white marks with Y values inside the picture along its
+	 * outer edge, counted from the feet (labelled with their own Y) in steps
+	 * of 8 blocks, so the numbers change with every step up or down. When
+	 * the marks would crowd, only every 16 blocks get one.
+	 */
+	private static void drawRuler(GuiGraphicsExtractor graphics, Minecraft client, int sx, int sy, int shown,
+			boolean rightCorner) {
+		double scale = (double) shown / SliceRenderer.SIZE;
+		double blockPx = SLICE.pixelsPerBlock() * scale;
+		int step = blockPx * RULER_STEP >= client.font.lineHeight + 2 ? RULER_STEP : 2 * RULER_STEP;
+		int feetY = SLICE.feetY();
+		double feetPx = sy + SLICE.feetPixelRow() * scale;
+		int first = -(int) Math.floor((feetPx - sy) / (blockPx * step));
+		int last = (int) Math.floor((sy + shown - feetPx) / (blockPx * step));
+		for (int k = first; k <= last; k++) {
+			int y = (int) Math.round(feetPx + k * step * blockPx);
+			String label = Integer.toString(feetY - k * step);
+			int textY = Math.clamp(y - client.font.lineHeight / 2, sy + 1, sy + shown - client.font.lineHeight);
+			if (rightCorner) {
+				graphics.fill(sx, y, sx + RULER_TICK, y + 1, 0xFFFFFFFF);
+				graphics.text(client.font, label, sx + RULER_TICK + 1, textY, 0xFFFFFFFF, true);
+			} else {
+				graphics.fill(sx + shown - RULER_TICK, y, sx + shown, y + 1, 0xFFFFFFFF);
+				graphics.text(client.font, label, sx + shown - RULER_TICK - 1 - client.font.width(label), textY,
+						0xFFFFFFFF, true);
+			}
 		}
 	}
 

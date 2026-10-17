@@ -66,6 +66,22 @@ final class SliceRenderer {
 		return texture != null;
 	}
 
+	/** Y of the player's feet in the shown picture (a laggy picture shows an older one). */
+	int feetY() {
+		return lastPos == null ? 0 : lastPos.getY();
+	}
+
+	/** Texture pixel row at the middle of the feet block. */
+	int feetPixelRow() {
+		int above = (int) (SIZE / lastPixelsPerBlock * ABOVE_FRACTION);
+		return above * lastPixelsPerBlock + lastPixelsPerBlock / 2;
+	}
+
+	/** Pixels per block of the shown picture. */
+	int pixelsPerBlock() {
+		return lastPixelsPerBlock;
+	}
+
 	/**
 	 * @param pixelsPerBlock 1, 2 or 4
 	 * @param mode coloring, see {@link SliceMode}

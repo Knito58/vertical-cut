@@ -40,6 +40,8 @@ public class VerticalCutMod implements ModInitializer {
 	public static final CrtItem COPPER_CRT = registerCrt(CrtTier.COPPER);
 	/** Upgrades a Stone CRT to a Copper CRT on the smithing table. */
 	public static final Item COPPER_TUBE = registerItem("copper_tube");
+	/** Module: a Y ruler inside the picture. */
+	public static final Item DEPTH_GAUGE = registerItem("depth_gauge");
 	public static final CrtItem IRON_CRT = registerCrt(CrtTier.IRON);
 	/** Upgrades a Copper CRT to an Iron CRT on the smithing table. */
 	public static final Item IRON_TUBE = registerItem("iron_tube");
@@ -71,6 +73,7 @@ public class VerticalCutMod implements ModInitializer {
 					tab.accept(COPPER_TUBE);
 					tab.accept(IRON_CRT);
 					tab.accept(IRON_TUBE);
+					tab.accept(DEPTH_GAUGE);
 				});
 
 		VerticalCut.LOGGER.info("Vertical Cut loaded");

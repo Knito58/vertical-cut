@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "N": "minecraft:copper_nugget",
+    "S": "minecraft:stick"
+  },
+  "pattern": [
+    "SN",
+    "SN",
+    "SN"
+  ],
+  "result": {
+    "count": 1,
+    "id": "verticalcut:depth_gauge"
+  }
+}
