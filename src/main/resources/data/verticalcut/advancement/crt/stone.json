@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_stone_crt": {
+      "conditions": {
+        "items": [
+          {
+            "items": "verticalcut:stone_crt"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "verticalcut:stone_crt"
+    },
+    "title": {
+      "translate": "advancements.verticalcut.stone.title"
+    },
+    "description": {
+      "translate": "advancements.verticalcut.stone.description"
+    },
+    "background": "minecraft:block/deepslate",
+    "announce_to_chat": false
+  },
+  "requirements": [
+    [
+      "has_stone_crt"
+    ]
+  ]
+}

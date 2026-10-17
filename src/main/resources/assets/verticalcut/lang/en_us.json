@@ -82,5 +82,17 @@
 	"verticalcut.config.figure_color.green": "Green",
 	"verticalcut.config.figure_color.cyan": "Cyan",
 	"verticalcut.config.figure_color.magenta": "Magenta",
-	"verticalcut.config.figure_color.white": "White"
+	"verticalcut.config.figure_color.white": "White",
+	"advancements.verticalcut.stone.title": "Stone CRT",
+	"advancements.verticalcut.stone.description": "Feed it coal and it dreams of caves.",
+	"advancements.verticalcut.copper.title": "Copper CRT",
+	"advancements.verticalcut.copper.description": "Now the stone tells what it hides.",
+	"advancements.verticalcut.iron.title": "Iron CRT",
+	"advancements.verticalcut.iron.description": "Grey shows the bones. Iron shows the blood.",
+	"advancements.verticalcut.gold.title": "Gold CRT",
+	"advancements.verticalcut.gold.description": "Gold leans closer for tired eyes.",
+	"advancements.verticalcut.diamond.title": "Diamond CRT",
+	"advancements.verticalcut.diamond.description": "Near, far, and the whole mountain.",
+	"advancements.verticalcut.netherite.title": "Netherite CRT",
+	"advancements.verticalcut.netherite.description": "The heartbeat of what moves in the dark."
 }

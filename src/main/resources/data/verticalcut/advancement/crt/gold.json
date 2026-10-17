@@ -1,0 +1,31 @@
+{
+  "parent": "verticalcut:crt/iron",
+  "criteria": {
+    "has_gold_crt": {
+      "conditions": {
+        "items": [
+          {
+            "items": "verticalcut:gold_crt"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "verticalcut:gold_crt"
+    },
+    "title": {
+      "translate": "advancements.verticalcut.gold.title"
+    },
+    "description": {
+      "translate": "advancements.verticalcut.gold.description"
+    }
+  },
+  "requirements": [
+    [
+      "has_gold_crt"
+    ]
+  ]
+}

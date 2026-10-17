@@ -1,0 +1,32 @@
+{
+  "parent": "verticalcut:crt/gold",
+  "criteria": {
+    "has_diamond_crt": {
+      "conditions": {
+        "items": [
+          {
+            "items": "verticalcut:diamond_crt"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "verticalcut:diamond_crt"
+    },
+    "title": {
+      "translate": "advancements.verticalcut.diamond.title"
+    },
+    "description": {
+      "translate": "advancements.verticalcut.diamond.description"
+    },
+    "frame": "goal"
+  },
+  "requirements": [
+    [
+      "has_diamond_crt"
+    ]
+  ]
+}

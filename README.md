@@ -49,6 +49,7 @@ This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
   within its entity range, so the far edge of the widest picture may stay empty.
 - Recipes appear in the recipe book when you pick up cobblestone, a copper, iron or gold ingot, a diamond, or the
   CRT to be upgraded.
+- The Vertical Cut advancement tab follows the CRT from Stone to Netherite, each with a little riddle.
 - In both black and white CRTs, water is mid grey and lava blinks.
 - CRTs burn coal: one coal or charcoal lasts 4 minutes of scanning (adjustable from
   60 to 600 seconds in the settings; on a server, the server's setting counts) and is taken from
