@@ -466,7 +466,7 @@ public class VerticalCutClient implements ClientModInitializer {
 		graphics.blit(RenderPipelines.GUI_TEXTURED, SLICE.textureId, sx, sy, 0, 0, shown, shown, tex, tex, tex, tex,
 				(pictureAlpha << 24) | 0xFFFFFF);
 		int figureColor = colorPicture ? config.figureColor.argb : 0xFFFFFFFF;
-		int playerLeft = SLICE.deep()
+		int playerLeft = SLICE.playerAbove()
 				? drawPlayerAbove(graphics, client, sx, sy, shown, figureColor)
 				: drawPlayer(graphics, client, sx, sy, shown, figureColor);
 		if (depthGauge) {
@@ -506,9 +506,8 @@ public class VerticalCutClient implements ClientModInitializer {
 		float textHeight = client.font.lineHeight * textScale;
 		int step = blockPx * RULER_STEP >= textHeight + 2 ? RULER_STEP : 2 * RULER_STEP;
 		int feetY = SLICE.feetY();
-		boolean deep = SLICE.deep();
-		// The deep picture lies one picture height below the normal one.
-		double feetPx = sy + SLICE.feetPixelRow() * scale - (deep ? shown : 0);
+		boolean deep = SLICE.playerAbove();
+		double feetPx = sy + SLICE.feetPixelRow() * scale;
 		double stepPx = step * blockPx;
 		int first = (int) Math.ceil((sy - feetPx) / stepPx);
 		int last = (int) Math.floor((sy + shown - feetPx) / stepPx);
@@ -528,6 +527,10 @@ public class VerticalCutClient implements ClientModInitializer {
 			String label = Integer.toString(feetY - k * step);
 			graphics.fill(sx, y, sx + RULER_TICK, y + 1, 0xFFFFFFFF);
 			int labelEnd = sx + RULER_TICK + 2 + Math.round(client.font.width(label) * textScale);
+			if (k == 0 && deep) {
+				// Its number stands on the plate at the top.
+				continue;
+			}
 			if (k == 0 && labelEnd < lineEnd) {
 				// From behind the number on to the stick figure.
 				graphics.fill(labelEnd, y, lineEnd, y + 1, 0xFFFFFFFF);
