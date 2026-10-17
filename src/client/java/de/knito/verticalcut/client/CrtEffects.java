@@ -45,6 +45,8 @@ final class CrtEffects {
 	private int nextFlickerIn = -1;
 	/** Remaining ticks of the current flicker. */
 	private int flickerTicks;
+	/** How much snow the current flicker shows, 0..1. */
+	private float flickerPower;
 	private SoundInstance buzz;
 	private int buzzStopIn;
 
@@ -98,7 +100,8 @@ final class CrtEffects {
 		if (nextFlickerIn < 0) {
 			scheduleFlicker(tier);
 		} else if (nextFlickerIn-- == 0) {
-			flickerTicks = 3 + random.nextInt(8);
+			flickerTicks = 6 + random.nextInt(10);
+			flickerPower = 0.55f + random.nextFloat() * 0.4f;
 			if (random.nextFloat() < tier.buzzChance) {
 				SoundEvent sound = BUZZES.get(random.nextInt(BUZZES.size()));
 				stopBuzz(client);
@@ -121,8 +124,12 @@ final class CrtEffects {
 		}
 	}
 
-	boolean flickering() {
-		return flickerTicks > 0;
+	/** Snow strength for the picture this tick, varying a little; 0 when not flickering. */
+	float flickerStrength() {
+		if (flickerTicks <= 0) {
+			return 0f;
+		}
+		return flickerPower * (0.6f + random.nextFloat() * 0.4f);
 	}
 
 	private void hiccup(Minecraft client) {

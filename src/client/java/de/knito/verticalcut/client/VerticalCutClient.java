@@ -124,7 +124,9 @@ public class VerticalCutClient implements ClientModInitializer {
 		if (showing) {
 			int pixelsPerBlock = tier.switchableZoom ? config.zoom : tier.pixelsPerBlock;
 			SliceMode mode = tier.color ? SliceMode.COLOR : tier.showsOres ? SliceMode.MONOCHROME : SliceMode.CAVES;
-			SLICE.tick(client, pixelsPerBlock, mode, decay, tier.laggy);
+			// A flicker is a short burst of the same snow a dying CRT shows.
+			float pictureDecay = Math.max(decay, EFFECTS.flickerStrength());
+			SLICE.tick(client, pixelsPerBlock, mode, pictureDecay, tier.laggy);
 		}
 	}
 
@@ -201,20 +203,16 @@ public class VerticalCutClient implements ClientModInitializer {
 			return;
 		}
 
-		// Flicker and wobble of a picture that is running out of fuel.
-		int jitterX = 0;
+		// The frame stays put (it only bulges when the CRT eats); all disturbance
+		// happens inside the picture: snow and sliding rows come from the slice
+		// texture, and a dying picture also dims now and then.
+		int pictureAlpha = alpha;
 		if (decay > 0 && RANDOM.nextFloat() < decay) {
-			alpha = (int) (alpha * (0.55f + RANDOM.nextFloat() * 0.45f));
-			jitterX = RANDOM.nextInt(5) - 2;
-		}
-		// The occasional flicker of a crude CRT: the picture drops out and jumps.
-		if (EFFECTS.flickering()) {
-			alpha = RANDOM.nextFloat() < 0.3f ? alpha / 6 : (int) (alpha * (0.3f + RANDOM.nextFloat() * 0.7f));
-			jitterX = RANDOM.nextInt(7) - 3;
+			pictureAlpha = (int) (alpha * (0.55f + RANDOM.nextFloat() * 0.45f));
 		}
 
 		int shown = Math.round(size * EFFECTS.bulge());
-		int sx = cx - shown / 2 + jitterX;
+		int sx = cx - shown / 2;
 		int sy = cy - shown / 2;
 
 		if (config.opacity == VerticalCutConfig.OPACITY_LEVELS) {
@@ -225,7 +223,7 @@ public class VerticalCutClient implements ClientModInitializer {
 
 		int tex = SliceRenderer.SIZE;
 		graphics.blit(RenderPipelines.GUI_TEXTURED, SLICE.textureId, sx, sy, 0, 0, shown, shown, tex, tex, tex, tex,
-				(alpha << 24) | 0xFFFFFF);
+				(pictureAlpha << 24) | 0xFFFFFF);
 		graphics.outline(sx - 1, sy - 1, shown + 2, shown + 2, 0xFFAAAAAA);
 
 		if (lowOnCoal && blinkOn) {
