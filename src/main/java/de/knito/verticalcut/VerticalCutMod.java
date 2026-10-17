@@ -51,6 +51,8 @@ public class VerticalCutMod implements ModInitializer {
 	public static final CrtItem DIAMOND_CRT = registerCrt(CrtTier.DIAMOND);
 	/** Upgrades a Gold CRT to a Diamond CRT on the smithing table. */
 	public static final Item DIAMOND_TUBE = registerItem("diamond_tube");
+	/** Made from a Diamond CRT the vanilla way: netherite upgrade template and a netherite ingot. */
+	public static final CrtItem NETHERITE_CRT = registerCrt(CrtTier.NETHERITE);
 	public static final MenuType<CrtMenu> CRT_MENU = Registry.register(BuiltInRegistries.MENU,
 			VerticalCut.id("crt_modules"), new MenuType<>(CrtMenu::new, FeatureFlagSet.of()));
 
@@ -93,6 +95,7 @@ public class VerticalCutMod implements ModInitializer {
 					tab.accept(GOLD_TUBE);
 					tab.accept(DIAMOND_CRT);
 					tab.accept(DIAMOND_TUBE);
+					tab.accept(NETHERITE_CRT);
 					tab.accept(DEPTH_GAUGE);
 				});
 
@@ -106,6 +109,10 @@ public class VerticalCutMod implements ModInitializer {
 				.stacksTo(1)
 				.durability(CrtItem.MAX_DAMAGE)
 				.component(DataComponents.DAMAGE, CrtItem.EMPTY);
+		if (tier.netherite) {
+			// Like every netherite item, it survives fire and lava.
+			properties.fireResistant();
+		}
 		CrtItem item = new CrtItem(tier, properties);
 		Registry.register(BuiltInRegistries.ITEM, key, item);
 		return item;

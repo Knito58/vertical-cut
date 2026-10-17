@@ -79,6 +79,7 @@ public class VerticalCutClient implements ClientModInitializer {
 	private static final SliceRenderer SLICE = new SliceRenderer();
 	private static final CrtEffects EFFECTS = new CrtEffects();
 	private static final Interference INTERFERENCE = new Interference();
+	private static final MobDots MOB_DOTS = new MobDots();
 	/** Share of interference a lightning rod module lets through. */
 	private static final float ROD_LETS_THROUGH = 0.25f;
 	private static final Random RANDOM = new Random();
@@ -174,7 +175,7 @@ public class VerticalCutClient implements ClientModInitializer {
 			if (crtItem.tier.canZoom()) {
 				details.add(Component.translatable("verticalcut.tooltip.crt.zoom", zoomKey.getTranslatedKeyMessage()));
 			}
-			if (crtItem.tier != CrtTier.DIAMOND) {
+			if (crtItem.tier != CrtTier.NETHERITE) {
 				details.add(Component.translatable(prefix + "upgrade"));
 			}
 			addDetails(lines, details);
@@ -256,6 +257,9 @@ public class VerticalCutClient implements ClientModInitializer {
 		if (CrtItem.hasLightningRod(CrtItem.modules(crt))) {
 			interference *= ROD_LETS_THROUGH;
 		}
+		if (tier.netherite) {
+			interference = 0;
+		}
 		EFFECTS.tickInterference(client, interference, fuel > 0);
 		colorPicture = tier.color;
 		if (zoomToggled && tier.canZoom() && fuel > 0) {
@@ -293,6 +297,7 @@ public class VerticalCutClient implements ClientModInitializer {
 			float yaw = cutYaw != null ? cutYaw : client.player.getYRot();
 			Finder finder = tier.showsOres ? Finder.of(CrtItem.finderSamples(CrtItem.modules(crt))) : Finder.NONE;
 			SLICE.tick(client, pixelsPerBlock, mode, pictureDecay, tier.laggy, yaw, deepView, finder);
+			MOB_DOTS.tick(client, tier.netherite, yaw);
 		}
 	}
 
@@ -492,6 +497,7 @@ public class VerticalCutClient implements ClientModInitializer {
 		int tex = SliceRenderer.SIZE;
 		graphics.blit(RenderPipelines.GUI_TEXTURED, SLICE.textureId, sx, sy, 0, 0, shown, shown, tex, tex, tex, tex,
 				(pictureAlpha << 24) | 0xFFFFFF);
+		MOB_DOTS.draw(graphics, client, SLICE, sx, sy, shown, config.colorBlind);
 		int figureColor = colorPicture ? config.figureColor.argb : 0xFFFFFFFF;
 		int playerLeft = SLICE.playerAbove()
 				? drawPlayerAbove(graphics, client, sx, sy, shown, figureColor)
@@ -631,7 +637,7 @@ public class VerticalCutClient implements ClientModInitializer {
 		}
 		int px = sx + shown / 2;
 		int py = sy + NEEDLE_LENGTH + 2;
-		int body = aligned ? 0xFFA0FF60 : 0xFFFFFFFF;
+		int body = aligned ? VerticalCutConfig.get().colorBlind ? 0xFF60C0FF : 0xFFA0FF60 : 0xFFFFFFFF;
 		int tip = aligned ? body : colorPicture ? 0xFFFF4040 : 0xFFFFFFFF;
 		for (int pass = 0; pass < 2; pass++) {
 			for (int i = 0; i <= NEEDLE_LENGTH; i++) {
@@ -663,7 +669,7 @@ public class VerticalCutClient implements ClientModInitializer {
 	}
 
 	/** The player in the picture (# = figure), drawn with a black outline. */
-	private static final String[] FIGURE = {
+	static final String[] FIGURE = {
 			".###.",
 			".###.",
 			".###.",
@@ -694,7 +700,18 @@ public class VerticalCutClient implements ClientModInitializer {
 		// In screen pixels: the middle of the player's column and the bottom of the feet block.
 		double center = sx * guiScale + (SLICE.feetPixelColumn() + ppb / 2.0) * scale;
 		int bottom = (int) Math.round(sy * guiScale + (SLICE.feetPixelRow() - ppb / 2 + ppb) * scale);
-		double twoBlocks = 2 * ppb * scale;
+		int left = drawFigure(graphics, guiScale, center, bottom, 2 * ppb * scale, argb);
+		return (int) Math.floor(left / guiScale);
+	}
+
+	/**
+	 * A stick figure (or a line when too small) in screen pixels, standing on
+	 * {@code bottom}, about {@code twoBlocks} tall.
+	 *
+	 * @return the screen x of the left edge of its outline
+	 */
+	static int drawFigure(GuiGraphicsExtractor graphics, float guiScale, double center, int bottom, double twoBlocks,
+			int argb) {
 		double pixel = twoBlocks / FIGURE.length;
 
 		graphics.pose().pushMatrix();
@@ -730,7 +747,7 @@ public class VerticalCutClient implements ClientModInitializer {
 			left = figureLeft - n;
 		}
 		graphics.pose().popMatrix();
-		return (int) Math.floor(left / guiScale);
+		return left;
 	}
 
 	/**

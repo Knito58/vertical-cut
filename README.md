@@ -7,7 +7,7 @@ so you can spot ores, caves and structures without digging.
 This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
 ([old forum page](https://www.minecraftforum.net/forums/mapping-and-modding-java-edition/minecraft-mods/1290593-vertical-cut-find-diamonds-iron-and-dungeons)).
 
-**Status:** Stone, Copper, Iron, Gold and Diamond CRT (the first five scanning devices) are in.
+**Status:** all six CRTs are in: Stone, Copper, Iron, Gold, Diamond and Netherite.
 
 - The cut only works while you hold a CRT (offhand or main hand).
 - **Stone CRT**, the starter device. Recipe (cobblestone, blackstone or cobbled deepslate all work):
@@ -41,6 +41,12 @@ This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
 - **Diamond CRT**, the upgrade after Gold: 3 module slots, and **B** steps through 32×32,
   64×64 and 128×128 blocks. Smithing table: torch + Gold CRT + Diamond Picture Tube, made from
   8 diamonds around a redstone torch.
+- **Netherite CRT**, the last upgrade, made the vanilla way: netherite upgrade template +
+  Diamond CRT + netherite ingot on the smithing table. Like Diamond, plus: living things up to
+  4 blocks beside the cut show as dots: hostile red with a heartbeat pulse, neutral green
+  (red as soon as it attacks), peaceful yellow, other players as white stick figures. No
+  interference gets through, and it survives fire and lava. Your client only knows mobs
+  within its entity range, so the far edge of the widest picture may stay empty.
 - Recipes appear in the recipe book when you pick up cobblestone, a copper, iron or gold ingot, a diamond, or the
   CRT to be upgraded.
 - In both black and white CRTs, water is mid grey and lava blinks.
@@ -88,9 +94,9 @@ This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
   along the left edge of the picture with the Y level at your feet and every 8 blocks above and below.
 - Hold **Shift** over a CRT or the tube for a short explanation.
 - Stone and Copper CRT show 32×32 blocks.
-- **V** shows or hides the cut, **K** locks its direction (compass module), **J** looks deeper (spyglass module), **B** zooms (Gold and Diamond CRT). Those are the only keys bound by default.
+- **V** shows or hides the cut, **K** locks its direction (compass module), **J** looks deeper (spyglass module), **B** zooms (Gold, Diamond and Netherite CRT). Those are the only keys bound by default.
 - Settings (CRT must be in hand, corner, distance from edge, size, opacity, CRT sounds,
-  seconds per coal, color of the stick figure that shows you) are in
+  seconds per coal, color of the stick figure that shows you, color blind colors: blue instead of green for the compass needle and neutral mobs) are in
   **Mod Menu → Vertical Cut → Configure** and are saved in `config/verticalcut.json`.
   With "CRT must be in hand" off, a CRT anywhere in the inventory scans, by the same rules
   (fuel, modules). There is always a CRT needed.

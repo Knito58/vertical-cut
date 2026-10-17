@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:smithing_transform",
+  "addition": "minecraft:netherite_ingot",
+  "base": "verticalcut:diamond_crt",
+  "result": {
+    "id": "verticalcut:netherite_crt"
+  },
+  "template": "minecraft:netherite_upgrade_smithing_template"
+}
