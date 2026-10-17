@@ -12,7 +12,7 @@
 	"verticalcut.crt.no_slots": "This CRT has no module slots",
 	"verticalcut.crt.stored": "Stored fuel: %s coals",
 	"verticalcut.crt.pouch": "Coal pouch: %s coals",
-	"verticalcut.crt.pouch.none": "No coal pouch (put a bundle in the slot)",
+	"verticalcut.crt.pouch.none": "Coal pouch: put in a bundle",
 
 	"verticalcut.config.title": "Vertical Cut Settings",
 	"verticalcut.config.visible": "Show cut",

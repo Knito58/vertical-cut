@@ -98,6 +98,15 @@ public class CrtItem extends Item {
 		return null;
 	}
 
+	/**
+	 * The fuel changes every few ticks; without this the hand would bob as if
+	 * a new item had been picked up each time.
+	 */
+	@Override
+	public boolean allowComponentsUpdateAnimation(Player player, InteractionHand hand, ItemStack oldStack, ItemStack newStack) {
+		return oldStack.getItem() != newStack.getItem();
+	}
+
 	@Override
 	public InteractionResult use(Level level, Player player, InteractionHand hand) {
 		if (!player.isShiftKeyDown()) {
