@@ -17,7 +17,9 @@ jobs:
           set +e +o pipefail
           M=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-common.jar
           C=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-client-only.jar
-          unzip -l $M | grep -iE "stone_crafting_materials|recipes/decorations/furnace|recipes/tools/stone_pickaxe" 
-          unzip -p $M data/minecraft/advancement/recipes/decorations/furnace.json
-          unzip -p $M data/minecraft/tags/item/stone_crafting_materials.json
-          unzip -p $M data/minecraft/recipe/furnace.json
+          javap -cp "$M" net.minecraft.world.entity.player.Player | grep -i "Component"
+          javap -cp "$M:$C" net.minecraft.client.player.LocalPlayer | grep -i "Component"
+          javap -cp "$M" net.minecraft.world.item.component.LodestoneTracker
+          javap -cp "$M" net.minecraft.core.GlobalPos | grep -iE "dimension|pos\("
+          javap -cp "$M:$C" com.mojang.blaze3d.platform.InputConstants | grep -E "KEY_(K|L|J|U|N|M)\b"
+          javap -cp "$M:$C" net.minecraft.client.gui.Gui | grep -iE "overlay|setScreen" | head
