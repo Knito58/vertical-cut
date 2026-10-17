@@ -6,19 +6,10 @@ jobs:
   probe:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-java@v5
-        with:
-          java-version: '25'
-          distribution: 'microsoft'
-      - run: chmod +x ./gradlew && ./gradlew build -q
-      - name: vanilla data
+      - name: modrinth
         run: |
-          M=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-common.jar
-          C=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-client-only.jar
-          p() { echo "=== $1"; javap -cp "$C:$M" "$1" 2>&1 | grep -v 'lambda\$' | grep -vE "^\s*$" | head -${2:-80} || true; }
           set +e +o pipefail
-          javap -c -p -cp "$M" net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity | grep -A45 "LootContext getLootContext(" | head -50
-          javap -c -p -cp "$M" net.minecraft.world.inventory.AbstractFurnaceMenu | grep -A25 "boolean isFuel" | head -30
-          javap -c -p -cp "$M" net.minecraft.world.level.storage.loot.parameters.LootContextParamSets | grep -B2 -A30 "CONTAINER_PROCESS" | grep -A30 "putstatic.*BLOCK_INTERACT\|ldc.*container_process" | head -40
-          javap -c -p -cp "$M" net.minecraft.world.level.storage.loot.parameters.LootContextParamSets | grep -B25 "putstatic.*CONTAINER_PROCESS" | head -30
+          for q in "iron bundle" "bundles" "bundle" "better bundles" "backpack"; do
+            echo "=== $q"
+            curl -sS -G "https://api.modrinth.com/v2/search" --data-urlencode "query=$q" --data-urlencode 'facets=[["versions:26.3"],["categories:fabric"]]' --data-urlencode 'limit=12' | jq -r '.hits[] | "\(.slug) | \(.title) | \(.downloads) | \(.description)"'
+          done
