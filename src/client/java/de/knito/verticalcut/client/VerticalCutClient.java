@@ -382,6 +382,10 @@ public class VerticalCutClient implements ClientModInitializer {
 			graphics.pose().pushMatrix();
 			graphics.pose().translate(sx + RULER_TICK + 1, textY);
 			graphics.pose().scale(textScale, textScale);
+			if (k == 0) {
+				// Black plate behind the feet number, one font pixel around the digits and their shadow.
+				graphics.fill(-1, -1, client.font.width(label), client.font.lineHeight - 1, 0xFF000000);
+			}
 			graphics.text(client.font, label, 0, 0, 0xFFFFFFFF, true);
 			graphics.pose().popMatrix();
 		}
