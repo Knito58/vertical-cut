@@ -56,6 +56,8 @@ This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
   buzzing, the closer the worse; an angry enderman twice as much.
 - **Lightning rod module**: any lightning rod in a module slot shields against three quarters
   of the interference.
+- **Depth Gauge module** (3 sticks in a column, 3 copper nuggets beside them): a white ruler
+  inside the picture with the Y level at your feet and every 8 blocks above and below.
 - Hold **Shift** over a CRT or the tube for a short explanation.
 - Stone and Copper CRT show 32×32 blocks.
 - **V** shows or hides the cut. That is the only key bound by default.

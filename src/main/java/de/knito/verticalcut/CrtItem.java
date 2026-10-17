@@ -87,6 +87,10 @@ public class CrtItem extends Item {
 		return !stack.isEmpty() && BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath().endsWith("lightning_rod");
 	}
 
+	public static boolean hasDepthGauge(List<ItemStack> modules) {
+		return modules.stream().anyMatch(stack -> stack.is(VerticalCutMod.DEPTH_GAUGE));
+	}
+
 	/** Whether the item works as a module, and which kind; null if it doesn't. */
 	public static String moduleKind(ItemStack stack) {
 		if (isPouch(stack)) {
@@ -94,6 +98,9 @@ public class CrtItem extends Item {
 		}
 		if (isLightningRod(stack)) {
 			return "lightning_rod";
+		}
+		if (stack.is(VerticalCutMod.DEPTH_GAUGE)) {
+			return "depth_gauge";
 		}
 		return null;
 	}

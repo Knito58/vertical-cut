@@ -5,6 +5,7 @@
 	"item.verticalcut.copper_tube": "Copper Picture Tube",
 	"item.verticalcut.iron_crt": "Iron CRT",
 	"item.verticalcut.iron_tube": "Iron Picture Tube",
+	"item.verticalcut.depth_gauge": "Depth Gauge",
 	"key.verticalcut.toggle": "Show/hide cut",
 	"key.verticalcut.opacity": "Change opacity",
 	"key.verticalcut.zoom": "Change zoom",
@@ -30,6 +31,8 @@
 	"verticalcut.tooltip.crt.slots": "Module slots: %s. Sneak + right-click to open.",
 	"verticalcut.tooltip.crt.pouch": "A bundle in a slot is a coal pouch: the CRT then eats only from it, anything a furnace burns.",
 	"verticalcut.tooltip.crt.lightning_rod": "A lightning rod in a slot shields against most interference.",
+	"verticalcut.tooltip.crt.depth_gauge": "A Depth Gauge in a slot shows Y levels in the picture.",
+	"verticalcut.tooltip.depth_gauge.use": "CRT module: put it into a module slot to see Y levels along the edge of the picture.",
 	"verticalcut.tooltip.stone_crt.upgrade": "Upgrade on the smithing table with a torch and a Copper Picture Tube.",
 	"verticalcut.tooltip.copper_tube.use": "Turns a Stone CRT into a Copper CRT on the smithing table, with a torch as template.",
 
