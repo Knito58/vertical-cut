@@ -32,6 +32,9 @@ final class SliceColors {
 	 * each such block blink black and white in its own rhythm.
 	 */
 	static final int PORTAL_MARK = 0x02000000;
+	/** The same for color pictures: nether portals blink purple, end portals teal. */
+	static final int NETHER_PORTAL_MARK = 0x03000000;
+	static final int END_PORTAL_MARK = 0x04000000;
 	/** Water in black and white pictures: a mid grey, between stone and the bright ores. */
 	static final int WATER = 0xFF8C8C8C;
 
@@ -72,7 +75,7 @@ final class SliceColors {
 			return LAVA_BLINK;
 		}
 		if (state.is(Blocks.NETHER_PORTAL) || state.is(Blocks.END_PORTAL) || state.is(Blocks.END_GATEWAY)) {
-			return PORTAL_MARK | (int) (pos.asLong() * 0x9E3779B97F4A7C15L >>> 40);
+			return PORTAL_MARK | portalSeed(pos);
 		}
 		// Water, and anything waterlogged or growing under water.
 		if (!state.getFluidState().isEmpty()) {
@@ -90,6 +93,12 @@ final class SliceColors {
 	}
 
 	static int colorOf(Level level, BlockPos pos, BlockState state) {
+		if (state.is(Blocks.NETHER_PORTAL)) {
+			return NETHER_PORTAL_MARK | portalSeed(pos);
+		}
+		if (state.is(Blocks.END_PORTAL) || state.is(Blocks.END_GATEWAY)) {
+			return END_PORTAL_MARK | portalSeed(pos);
+		}
 		if (!state.isAir()) {
 			Integer highlight = HIGHLIGHTS.get(state.getBlock());
 			if (highlight != null) {
@@ -97,6 +106,11 @@ final class SliceColors {
 			}
 		}
 		return plainColorOf(level, pos, state);
+	}
+
+	/** A fixed random 24-bit value per block, so each portal block keeps its own rhythm. */
+	private static int portalSeed(BlockPos pos) {
+		return (int) (pos.asLong() * 0x9E3779B97F4A7C15L >>> 40);
 	}
 
 	/** Map color without highlights. */
