@@ -197,7 +197,7 @@ final class SliceRenderer {
 					argb = mode == SliceMode.COLOR
 							? SliceColors.colorOf(level, cursor, state)
 							: SliceColors.monochromeOf(level, cursor, state, mode == SliceMode.MONOCHROME);
-					if (!finder.isEmpty() && finder.matches(state)) {
+					if (!finder.isEmpty() && finder.matches(level, cursor, state)) {
 						argb = SliceColors.FINDER_MARK | argb & 0xFFFFFF;
 						hasFinder = true;
 					}

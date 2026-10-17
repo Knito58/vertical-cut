@@ -39,7 +39,7 @@
 	"verticalcut.tooltip.crt.key": "%s shows or hides the cut.",
 	"verticalcut.tooltip.crt.slots": "Module slots: %s. Sneak + right-click to open.",
 	"verticalcut.tooltip.crt.pouch": "A bundle in a slot is a coal pouch: the CRT then eats only from it, anything a furnace burns.",
-	"verticalcut.tooltip.crt.finder": "A bundle with an amethyst shard in it is a finder instead: put in anything made of an ore (raw ore, ingot, nugget, gem, dust) and that ore flashes in the picture. It never burns anything.",
+	"verticalcut.tooltip.crt.finder": "A bundle with an amethyst shard in it is a finder instead: put in anything made of an ore (raw ore, ingot, nugget, gem, dust) and that ore flashes in the picture. A chest as sample makes everything with an inventory flash. It never burns anything.",
 	"verticalcut.tooltip.crt.compass": "A compass in a slot lets you lock the cut in the direction you look (%s). Its needle turns green with a clink when you face that way again. A lodestone compass points the cut at its lodestone.",
 	"verticalcut.tooltip.crt.spyglass": "A spyglass in a slot lets you look deeper (%s): the picture then shows what lies below the normal one. You stand above it, a dotted line marks where.",
 	"verticalcut.lock.on": "Cut locked at %s° (0° = north)",
