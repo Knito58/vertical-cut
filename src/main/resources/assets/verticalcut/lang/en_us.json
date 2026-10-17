@@ -14,6 +14,18 @@
 	"verticalcut.crt.pouch": "Coal pouch: %s coals",
 	"verticalcut.crt.pouch.none": "No coal pouch (put a bundle in the slot)",
 
+	"verticalcut.tooltip.hold_shift": "Hold Shift for details",
+	"verticalcut.tooltip.stone_crt.shows": "Shows caves, water and lava, but no ores.",
+	"verticalcut.tooltip.stone_crt.picture": "Crude: the picture lags behind and flickers now and then.",
+	"verticalcut.tooltip.copper_crt.shows": "Shows ores in black and white.",
+	"verticalcut.tooltip.copper_crt.picture": "Steady picture, flickers only rarely.",
+	"verticalcut.tooltip.crt.coal": "Eats coal or charcoal from your inventory, one per %s seconds of scanning.",
+	"verticalcut.tooltip.crt.key": "%s shows or hides the cut.",
+	"verticalcut.tooltip.crt.slots": "Module slots: %s. Sneak + right-click to open.",
+	"verticalcut.tooltip.crt.pouch": "A bundle in a slot is a coal pouch: the CRT then eats only from it, anything a furnace burns.",
+	"verticalcut.tooltip.stone_crt.upgrade": "Upgrade on the smithing table with a torch and a Copper Picture Tube.",
+	"verticalcut.tooltip.copper_tube.use": "Turns a Stone CRT into a Copper CRT on the smithing table, with a torch as template.",
+
 	"verticalcut.config.title": "Vertical Cut Settings",
 	"verticalcut.config.visible": "Show cut",
 	"verticalcut.config.require_device": "Needs CRT in hand",
