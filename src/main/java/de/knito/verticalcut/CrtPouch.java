@@ -9,6 +9,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.component.BundleContents;
@@ -88,8 +89,8 @@ public final class CrtPouch {
 		BundleContents.Mutable mutable = contents.copyWithContents(items.stream().filter(s -> !s.isEmpty())).asMutable();
 		for (ItemStack leftover : leftovers) {
 			mutable.tryInsert(leftover);
-			if (!leftover.isEmpty()) {
-				player.getInventory().placeItemBackInInventory(leftover);
+			if (!leftover.isEmpty() && !player.getInventory().add(leftover)) {
+				level.addFreshEntity(new ItemEntity(level, player.getX(), player.getY(), player.getZ(), leftover));
 			}
 		}
 		pouch.set(DataComponents.BUNDLE_CONTENTS, mutable.toImmutable());
