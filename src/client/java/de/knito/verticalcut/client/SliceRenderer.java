@@ -55,6 +55,8 @@ final class SliceRenderer {
 	private int lastPixelsPerBlock;
 	private SliceMode lastMode;
 	private boolean lastDeep;
+	/** Rows of blocks from the top of the shown picture down to the feet; negative = feet above it. */
+	private int lastTop;
 	private int ticksSinceUpdate;
 	private boolean lastNoisy;
 	private boolean hasLava;
@@ -70,10 +72,9 @@ final class SliceRenderer {
 		return lastPos == null ? 0 : lastPos.getY();
 	}
 
-	/** Texture pixel row at the middle of the feet block. */
+	/** Texture pixel row at the middle of the feet block; negative when the feet are above the picture. */
 	int feetPixelRow() {
-		int above = (int) (SIZE / lastPixelsPerBlock * ABOVE_FRACTION);
-		return above * lastPixelsPerBlock + lastPixelsPerBlock / 2;
+		return lastTop * lastPixelsPerBlock + lastPixelsPerBlock / 2;
 	}
 
 	/** Texture pixel column where the player's block starts. */
@@ -81,9 +82,9 @@ final class SliceRenderer {
 		return Math.max(1, BEHIND / lastPixelsPerBlock) * lastPixelsPerBlock;
 	}
 
-	/** The shown picture lies one picture height below the normal one (spyglass). */
-	boolean deep() {
-		return lastDeep;
+	/** The player (two blocks tall) doesn't fit into the picture: it shows what lies below (spyglass). */
+	boolean playerAbove() {
+		return feetPixelRow() < 2 * lastPixelsPerBlock;
 	}
 
 	/** Pixels per block of the shown picture. */
@@ -152,8 +153,12 @@ final class SliceRenderer {
 		int blocks = SIZE / pixelsPerBlock;
 		int behind = Math.max(1, BEHIND / pixelsPerBlock);
 		int above = (int) (blocks * ABOVE_FRACTION);
-		// The deep picture goes on where the normal one ends.
-		int top = deep ? above - blocks : above;
+		int feetY = player.getBlockY();
+		int minY = level.getMinY();
+		int maxY = level.getMaxY();
+		// The deep picture goes on where the normal one ends, but stops at the bottom of the world.
+		int top = deep ? Math.min(above, Math.max(above - blocks, minY - feetY + blocks - 1)) : above;
+		lastTop = top;
 
 		// Minecraft yaw: 0 = south (+Z), 90 = west (-X).
 		double rad = Math.toRadians(yaw);
@@ -162,9 +167,6 @@ final class SliceRenderer {
 
 		double startX = player.getX();
 		double startZ = player.getZ();
-		int feetY = player.getBlockY();
-		int minY = level.getMinY();
-		int maxY = level.getMaxY();
 
 		BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
 

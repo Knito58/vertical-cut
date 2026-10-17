@@ -62,8 +62,9 @@ This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
   that way; the antennas of the CRT in your hand light up as well.
   A lodestone compass points the cut at its lodestone.
 - **Spyglass module**: a spyglass in a module slot. **J** flips the picture between near (as usual)
-  and deep: the deep picture goes on where the near one ends, one full picture lower. You stand
-  above it, a dotted line in your color marks your position. Taking the spyglass out or the CRT
+  and deep: the deep picture goes on where the near one ends, one full picture lower, but never
+  below the bottom of the world. You stand above it, a dotted line in your color marks your
+  position; near the bottom, where you fit into the picture, you are the stick figure again. Taking the spyglass out or the CRT
   dying brings back the near picture.
 - **Depth Gauge module** (3 sticks in a column, 3 copper nuggets beside them): a white ruler
   along the left edge of the picture with the Y level at your feet and every 8 blocks above and below.
