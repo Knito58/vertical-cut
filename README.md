@@ -7,7 +7,7 @@ so you can spot ores, caves and structures without digging.
 This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
 ([old forum page](https://www.minecraftforum.net/forums/mapping-and-modding-java-edition/minecraft-mods/1290593-vertical-cut-find-diamonds-iron-and-dungeons)).
 
-**Status:** Stone CRT and Copper CRT (the first two scanning devices) are in.
+**Status:** Stone, Copper and Iron CRT (the first three scanning devices) are in.
 
 - The cut only works while you hold a CRT (offhand or main hand).
 - **Stone CRT**, the starter device. Recipe (cobblestone, blackstone or cobbled deepslate all work):
@@ -26,7 +26,16 @@ This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
   C C C
   ```
   The fuel in the CRT carries over to the upgrade.
-- Recipes appear in the recipe book when you pick up cobblestone, a copper ingot or a Stone CRT.
+- **Iron CRT**, the next upgrade: the first color picture, sees twice as far (64×64 blocks),
+  no flicker of its own and 2 module slots. Smithing table: torch + Copper CRT + Iron Picture
+  Tube. The tube:
+  ```
+  I I I      I = iron ingot
+  I R I      R = redstone torch
+  I I I
+  ```
+- Recipes appear in the recipe book when you pick up cobblestone, a copper or iron ingot, or the
+  CRT to be upgraded.
 - In both black and white CRTs, water is mid grey and lava blinks.
 - CRTs burn coal: one coal or charcoal lasts 4 minutes of scanning (adjustable from
   60 to 600 seconds in the settings; on a server, the server's setting counts) and is taken from
@@ -48,7 +57,7 @@ This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
 - **Lightning rod module**: any lightning rod in a module slot shields against three quarters
   of the interference.
 - Hold **Shift** over a CRT or the tube for a short explanation.
-- Both show 32×32 blocks.
+- Stone and Copper CRT show 32×32 blocks.
 - **V** shows or hides the cut. That is the only key bound by default.
 - Settings (needs CRT on/off, corner, distance from edge, size, opacity, CRT sounds,
   seconds per coal, zoom) are in

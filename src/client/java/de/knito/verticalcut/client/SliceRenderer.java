@@ -154,7 +154,7 @@ final class SliceRenderer {
 							? SliceColors.colorOf(level, cursor, state)
 							: SliceColors.monochromeOf(level, cursor, state, mode == SliceMode.MONOCHROME);
 					hasLava |= argb == SliceColors.LAVA_BLINK;
-					hasPortal |= argb >>> 24 == SliceColors.PORTAL_MARK >>> 24;
+					hasPortal |= isPortal(argb);
 				}
 				fill(col, row, pixelsPerBlock, argb);
 			}
@@ -195,8 +195,8 @@ final class SliceRenderer {
 				int argb = base[y * SIZE + sx];
 				if (argb == SliceColors.LAVA_BLINK) {
 					argb = lavaBright ? SliceColors.LAVA_BRIGHT : SliceColors.LAVA_DARK;
-				} else if (argb >>> 24 == SliceColors.PORTAL_MARK >>> 24) {
-					argb = portalPixel(argb & 0xFFFFFF, now);
+				} else if (isPortal(argb)) {
+					argb = portalPixel(argb, now);
 				}
 				if (decay > 0) {
 					argb = decayPixel(argb, decay);
@@ -207,14 +207,30 @@ final class SliceRenderer {
 		texture.upload();
 	}
 
+	private static boolean isPortal(int argb) {
+		int mark = argb >>> 24;
+		return mark >= SliceColors.PORTAL_MARK >>> 24 && mark <= SliceColors.END_PORTAL_MARK >>> 24;
+	}
+
 	/**
-	 * A lit portal block: black or white, switching every 150 to 650 ms, the
-	 * speed and phase picked once per block from its random value.
+	 * A lit portal block: switches between a bright and a dark color every
+	 * 150 to 650 ms, the speed and phase picked once per block from its random
+	 * value. Black and white pictures blink white, color pictures purple
+	 * (nether) or teal (end).
 	 */
-	private static int portalPixel(int seed, long now) {
+	private static int portalPixel(int marked, long now) {
+		int seed = marked & 0xFFFFFF;
 		long halfPeriod = 150 + seed % 500;
 		long phase = (seed >> 9) % 1000;
-		return ((now + phase) / halfPeriod) % 2 == 0 ? 0xFFFFFFFF : 0xFF000000;
+		boolean on = ((now + phase) / halfPeriod) % 2 == 0;
+		int mark = marked & 0xFF000000;
+		if (mark == SliceColors.NETHER_PORTAL_MARK) {
+			return on ? 0xFFB040FF : 0xFF300050;
+		}
+		if (mark == SliceColors.END_PORTAL_MARK) {
+			return on ? 0xFF40E0C0 : 0xFF002018;
+		}
+		return on ? 0xFFFFFFFF : 0xFF000000;
 	}
 
 	/** Drains color and mixes in snow; at full decay the picture is mostly noise. */

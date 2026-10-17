@@ -120,12 +120,14 @@ public class VerticalCutClient implements ClientModInitializer {
 				details.add(Component.translatable("verticalcut.tooltip.crt.pouch"));
 				details.add(Component.translatable("verticalcut.tooltip.crt.lightning_rod"));
 			}
-			if (crtItem.tier == CrtTier.STONE) {
-				details.add(Component.translatable("verticalcut.tooltip.stone_crt.upgrade"));
+			if (crtItem.tier == CrtTier.STONE || crtItem.tier == CrtTier.COPPER) {
+				details.add(Component.translatable(prefix + "upgrade"));
 			}
 			addDetails(lines, details);
 		} else if (stack.is(VerticalCutMod.COPPER_TUBE)) {
 			addDetails(lines, List.of(Component.translatable("verticalcut.tooltip.copper_tube.use")));
+		} else if (stack.is(VerticalCutMod.IRON_TUBE)) {
+			addDetails(lines, List.of(Component.translatable("verticalcut.tooltip.iron_tube.use")));
 		}
 	}
 

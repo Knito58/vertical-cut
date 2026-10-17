@@ -7,7 +7,9 @@ package de.knito.verticalcut;
 public enum CrtTier {
 	// Crude cave finder: no ores, a lagging picture, frequent flicker with a loud buzz.
 	STONE("stone_crt", 4, false, false, false, true, 10, 30, 0.5f, 0.5f, 0),
-	COPPER("copper_crt", 4, false, false, true, false, 60, 180, 0.4f, 0.25f, 1);
+	COPPER("copper_crt", 4, false, false, true, false, 60, 180, 0.4f, 0.25f, 1),
+	// First color picture, sees twice as far (64x64 blocks), no flicker of its own.
+	IRON("iron_crt", 2, true, false, true, false, 0, 0, 0f, 0f, 2);
 
 	public final String itemName;
 	/** Pixels per block when zoom can't be switched. */
