@@ -17,5 +17,4 @@ jobs:
           set +e +o pipefail
           M=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-common.jar
           C=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-client-only.jar
-          javap -c -p -cp "$M:$C" net.minecraft.client.Options | grep -E 'ldc.*"key\.|bipush|sipush' | grep -B1 -E 'bipush|sipush' | grep -A1 'ldc' | head -120
-          javap -p -cp "$M:$C" net.minecraft.sounds.SoundEvents | grep -i spyglass
+          javap -c -p -cp "$M:$C" net.minecraft.client.Options | grep -E 'String key\.|KEY_|bipush|sipush' | grep -vE 'key\.(categories|keyboard)' | sed 's/^ *[0-9]*: //' | head -200
