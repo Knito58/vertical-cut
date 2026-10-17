@@ -358,9 +358,9 @@ public class VerticalCutClient implements ClientModInitializer {
 			int y = (int) Math.round(feetPx + k * step * blockPx);
 			String label = Integer.toString(feetY - k * step);
 			graphics.fill(sx, y, sx + RULER_TICK, y + 1, 0xFFFFFFFF);
-			if (k == 0) {
+			int labelEnd = sx + RULER_TICK + 2 + Math.round(client.font.width(label) * RULER_TEXT_SCALE);
+			if (k == 0 && labelEnd < markerX) {
 				// From behind the number on to the player marker.
-				int labelEnd = sx + RULER_TICK + 2 + Math.round(client.font.width(label) * RULER_TEXT_SCALE);
 				graphics.fill(labelEnd, y, markerX, y + 1, 0xFFFFFFFF);
 			}
 			float textY = Math.clamp(y - textHeight / 2, sy + 1, sy + shown - textHeight);
