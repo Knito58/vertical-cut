@@ -88,8 +88,8 @@ public final class CrtPouch {
 		BundleContents.Mutable mutable = contents.copyWithContents(items.stream().filter(s -> !s.isEmpty())).asMutable();
 		for (ItemStack leftover : leftovers) {
 			mutable.tryInsert(leftover);
-			if (!leftover.isEmpty() && !player.getInventory().add(leftover)) {
-				player.drop(leftover, false);
+			if (!leftover.isEmpty()) {
+				player.getInventory().placeItemBackInInventory(leftover);
 			}
 		}
 		pouch.set(DataComponents.BUNDLE_CONTENTS, mutable.toImmutable());
