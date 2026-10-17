@@ -12,6 +12,7 @@ import net.minecraft.network.chat.Component;
 
 import de.knito.verticalcut.VerticalCutConfig;
 import de.knito.verticalcut.VerticalCutConfig.Corner;
+import de.knito.verticalcut.VerticalCutConfig.FigureColor;
 
 /**
  * Settings screen, reachable from Mod Menu or an optional key. Changes take
@@ -78,6 +79,14 @@ public class VerticalCutConfigScreen extends Screen {
 				.withValues(1, 2)
 				.create(x, y, BUTTON_WIDTH, 20, Component.translatable("verticalcut.config.zoom"),
 						(button, value) -> config.zoom = value));
+		y += ROW;
+
+		addRenderableWidget(CycleButton.<FigureColor>builder(
+						color -> Component.translatable("verticalcut.config.figure_color." + color.name().toLowerCase()),
+						config.figureColor)
+				.withValues(FigureColor.values())
+				.create(x, y, BUTTON_WIDTH, 20, Component.translatable("verticalcut.config.figure_color"),
+						(button, value) -> config.figureColor = value));
 		y += ROW + 8;
 
 		addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> onClose())

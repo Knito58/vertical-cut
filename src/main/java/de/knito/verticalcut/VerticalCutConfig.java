@@ -28,6 +28,18 @@ public final class VerticalCutConfig {
 		}
 	}
 
+	/** Color of the stick figure in color pictures; black and white pictures always draw it white. */
+	public enum FigureColor {
+		YELLOW(0xFFFFDC28), RED(0xFFFF5050), ORANGE(0xFFFF9020), GREEN(0xFF50E050), CYAN(0xFF50E0FF),
+		MAGENTA(0xFFFF60FF), WHITE(0xFFFFFFFF);
+
+		public final int argb;
+
+		FigureColor(int argb) {
+			this.argb = argb;
+		}
+	}
+
 	public static final int OPACITY_LEVELS = 7;
 	public static final int MIN_SIZE = 64;
 	public static final int MAX_SIZE = 256;
@@ -59,6 +71,7 @@ public final class VerticalCutConfig {
 	public int zoom = 1;
 	/** Gulp and burp when the CRT swallows a coal. Client only. */
 	public boolean sounds = true;
+	public FigureColor figureColor = FigureColor.YELLOW;
 
 	public static VerticalCutConfig get() {
 		if (instance == null) {
@@ -98,6 +111,9 @@ public final class VerticalCutConfig {
 	private void clamp() {
 		if (corner == null) {
 			corner = Corner.TOP_LEFT;
+		}
+		if (figureColor == null) {
+			figureColor = FigureColor.YELLOW;
 		}
 		margin = Math.clamp(margin, 0, MAX_MARGIN);
 		size = Math.clamp(size, MIN_SIZE, MAX_SIZE);
