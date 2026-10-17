@@ -1,5 +1,7 @@
 package de.knito.verticalcut.client;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import com.mojang.blaze3d.platform.InputConstants;
@@ -12,6 +14,8 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FormattedText;
+import net.minecraft.network.chat.Style;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -47,6 +51,8 @@ public class VerticalCutClient implements ClientModInitializer {
 
 	/** Below this share of a full tank the picture starts to decay. */
 	private static final float DECAY_START = 0.1f;
+	/** Width at which the Shift details in tooltips wrap. */
+	private static final int TOOLTIP_WIDTH = 200;
 	/** Fuel units that fill the coal bar beside the frame: 64 coals. */
 	private static final int COAL_BAR_FULL = 64 * CrtItem.FUEL_UNITS;
 
@@ -83,18 +89,54 @@ public class VerticalCutClient implements ClientModInitializer {
 		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> sentScanning = null);
 		ClientTickEvents.END_CLIENT_TICK.register(VerticalCutClient::tick);
 		MenuScreens.register(VerticalCutMod.CRT_MENU, CrtScreen::new);
-		ItemTooltipCallback.EVENT.register((stack, context, type, lines) -> {
-			if (stack.getItem() instanceof CrtItem) {
-				lines.add(Component.translatable("verticalcut.crt.stored", CrtScreen.coals(CrtItem.fuel(stack)))
-						.withStyle(ChatFormatting.GRAY));
-				Integer pouch = stack.get(CrtComponents.POUCH_FUEL);
-				if (pouch != null) {
-					lines.add(Component.translatable("verticalcut.crt.pouch", CrtScreen.coals(pouch))
-							.withStyle(ChatFormatting.GRAY));
-				}
-			}
-		});
+		ItemTooltipCallback.EVENT.register((stack, context, type, lines) -> addTooltip(stack, lines));
 		HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT, VerticalCut.id("slice"), VerticalCutClient::extract);
+	}
+
+	/**
+	 * Fuel lines on every CRT, and with Shift held a short explanation of the
+	 * item itself. It never tells about the next tiers; those are riddles.
+	 */
+	private static void addTooltip(ItemStack stack, List<Component> lines) {
+		if (stack.getItem() instanceof CrtItem crtItem) {
+			lines.add(Component.translatable("verticalcut.crt.stored", CrtScreen.coals(CrtItem.fuel(stack)))
+					.withStyle(ChatFormatting.GRAY));
+			Integer pouch = stack.get(CrtComponents.POUCH_FUEL);
+			if (pouch != null) {
+				lines.add(Component.translatable("verticalcut.crt.pouch", CrtScreen.coals(pouch))
+						.withStyle(ChatFormatting.GRAY));
+			}
+			List<Component> details = new ArrayList<>();
+			String prefix = "verticalcut.tooltip." + crtItem.tier.itemName + ".";
+			details.add(Component.translatable(prefix + "shows"));
+			details.add(Component.translatable(prefix + "picture"));
+			details.add(Component.translatable("verticalcut.tooltip.crt.coal", VerticalCutConfig.get().secondsPerCoal));
+			details.add(Component.translatable("verticalcut.tooltip.crt.key", toggleKey.getTranslatedKeyMessage()));
+			if (crtItem.tier.moduleSlots > 0) {
+				details.add(Component.translatable("verticalcut.tooltip.crt.slots", crtItem.tier.moduleSlots));
+				details.add(Component.translatable("verticalcut.tooltip.crt.pouch"));
+			}
+			if (crtItem.tier == CrtTier.STONE) {
+				details.add(Component.translatable("verticalcut.tooltip.stone_crt.upgrade"));
+			}
+			addDetails(lines, details);
+		} else if (stack.is(VerticalCutMod.COPPER_TUBE)) {
+			addDetails(lines, List.of(Component.translatable("verticalcut.tooltip.copper_tube.use")));
+		}
+	}
+
+	/** Adds the details while Shift is held, else a hint to hold it. Long lines wrap. */
+	private static void addDetails(List<Component> lines, List<Component> details) {
+		Minecraft client = Minecraft.getInstance();
+		if (!client.hasShiftDown()) {
+			lines.add(Component.translatable("verticalcut.tooltip.hold_shift").withStyle(ChatFormatting.DARK_GRAY));
+			return;
+		}
+		for (Component detail : details) {
+			for (FormattedText part : client.font.getSplitter().splitLines(detail, TOOLTIP_WIDTH, Style.EMPTY)) {
+				lines.add(Component.literal(part.getString()).withStyle(ChatFormatting.GRAY));
+			}
+		}
 	}
 
 	private static KeyMapping register(String name, int key) {
