@@ -54,6 +54,8 @@ public class VerticalCutClient implements ClientModInitializer {
 	/** What the HUD should draw this tick, decided in the client tick. */
 	private static boolean showing;
 	private static float decay;
+	/** Color picture (blue solid background) or black and white (black background). */
+	private static boolean colorPicture;
 	/** Tank empty and nothing to refill: show a dark frame with a blinking coal. */
 	private static boolean outOfCoal;
 	/** Picture is decaying and there is no spare coal: small coal warning in the corner. */
@@ -83,6 +85,7 @@ public class VerticalCutClient implements ClientModInitializer {
 
 		showing = false;
 		decay = 0;
+		colorPicture = true;
 		outOfCoal = false;
 		lowOnCoal = false;
 		if (client.player == null) {
@@ -109,6 +112,7 @@ public class VerticalCutClient implements ClientModInitializer {
 		int fuel = CrtItem.fuel(crt);
 		EFFECTS.tick(client, fuel);
 		CrtTier tier = ((CrtItem) crt.getItem()).tier;
+		colorPicture = tier.color;
 
 		float share = (float) fuel / CrtItem.FUEL_UNITS;
 		decay = fuel == 0 ? 1f : Math.max(0f, 1f - share / DECAY_START);
@@ -207,7 +211,7 @@ public class VerticalCutClient implements ClientModInitializer {
 		int sy = cy - shown / 2;
 
 		if (config.opacity == VerticalCutConfig.OPACITY_LEVELS) {
-			graphics.fill(sx, sy, sx + shown, sy + shown, 0xFF203060);
+			graphics.fill(sx, sy, sx + shown, sy + shown, colorPicture ? 0xFF203060 : 0xFF000000);
 		} else {
 			graphics.fill(sx, sy, sx + shown, sy + shown, (alpha / 3) << 24);
 		}
