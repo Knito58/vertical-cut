@@ -1,0 +1,31 @@
+{
+  "parent": "verticalcut:crt/stone",
+  "criteria": {
+    "has_copper_crt": {
+      "conditions": {
+        "items": [
+          {
+            "items": "verticalcut:copper_crt"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "verticalcut:copper_crt"
+    },
+    "title": {
+      "translate": "advancements.verticalcut.copper.title"
+    },
+    "description": {
+      "translate": "advancements.verticalcut.copper.description"
+    }
+  },
+  "requirements": [
+    [
+      "has_copper_crt"
+    ]
+  ]
+}

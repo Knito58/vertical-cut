@@ -1,0 +1,32 @@
+{
+  "parent": "verticalcut:crt/diamond",
+  "criteria": {
+    "has_netherite_crt": {
+      "conditions": {
+        "items": [
+          {
+            "items": "verticalcut:netherite_crt"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "verticalcut:netherite_crt"
+    },
+    "title": {
+      "translate": "advancements.verticalcut.netherite.title"
+    },
+    "description": {
+      "translate": "advancements.verticalcut.netherite.description"
+    },
+    "frame": "challenge"
+  },
+  "requirements": [
+    [
+      "has_netherite_crt"
+    ]
+  ]
+}

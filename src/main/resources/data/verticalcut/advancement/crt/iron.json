@@ -1,0 +1,31 @@
+{
+  "parent": "verticalcut:crt/copper",
+  "criteria": {
+    "has_iron_crt": {
+      "conditions": {
+        "items": [
+          {
+            "items": "verticalcut:iron_crt"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "verticalcut:iron_crt"
+    },
+    "title": {
+      "translate": "advancements.verticalcut.iron.title"
+    },
+    "description": {
+      "translate": "advancements.verticalcut.iron.description"
+    }
+  },
+  "requirements": [
+    [
+      "has_iron_crt"
+    ]
+  ]
+}
