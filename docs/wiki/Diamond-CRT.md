@@ -4,6 +4,8 @@ The wide view.
 
 > *Near, far, and the whole mountain.*
 
+![The Diamond CRT at 128 by 128 blocks: one pixel per block, down to the bottom of the world](images/diamond-crt-128.png)
+
 ## How to make it
 Smithing table: torch + [Gold CRT](Gold-CRT.md) + [Diamond Picture Tube](Picture-Tubes.md).
 
