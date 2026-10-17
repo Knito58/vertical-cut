@@ -9,6 +9,8 @@ This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
 
 **Status:** all six CRTs are in: Stone, Copper, Iron, Gold, Diamond and Netherite.
 
+The [wiki](docs/wiki/Home.md) has a page for every item, a getting started guide and tips.
+
 - The cut only works while you hold a CRT (offhand or main hand).
 - **Stone CRT**, the starter device. Recipe (cobblestone, blackstone or cobbled deepslate all work):
   ```
