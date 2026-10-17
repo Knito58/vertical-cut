@@ -4,6 +4,8 @@ The last upgrade. It hears the living.
 
 > *The heartbeat of what moves in the dark.*
 
+![The Netherite CRT: a hostile mob in the water (the tall red dot with the black outline)](images/netherite-crt.png)
+
 ## How to make it
 Smithing table: netherite upgrade template + [Diamond CRT](Diamond-CRT.md) + netherite ingot.
 No picture tube needed.
