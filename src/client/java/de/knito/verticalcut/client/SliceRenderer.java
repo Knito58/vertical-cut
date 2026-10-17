@@ -54,6 +54,7 @@ final class SliceRenderer {
 	private float lastYaw = Float.NaN;
 	private int lastPixelsPerBlock;
 	private SliceMode lastMode;
+	private boolean lastDeep;
 	private int ticksSinceUpdate;
 	private boolean lastNoisy;
 	private boolean hasLava;
@@ -80,6 +81,11 @@ final class SliceRenderer {
 		return Math.max(1, BEHIND / lastPixelsPerBlock) * lastPixelsPerBlock;
 	}
 
+	/** The shown picture lies one picture height below the normal one (spyglass). */
+	boolean deep() {
+		return lastDeep;
+	}
+
 	/** Pixels per block of the shown picture. */
 	int pixelsPerBlock() {
 		return lastPixelsPerBlock;
@@ -91,8 +97,10 @@ final class SliceRenderer {
 	 * @param decay 0 = perfect picture, 1 = almost dead (grey, noisy, jittery)
 	 * @param laggy only refresh every {@link #LAG_REFRESH_TICKS}, even while moving
 	 * @param yaw direction of the cut (degrees, Minecraft yaw), usually the view's
+	 * @param deep show the picture one picture height lower (spyglass)
 	 */
-	void tick(Minecraft client, int pixelsPerBlock, SliceMode mode, float decay, boolean laggy, float yaw) {
+	void tick(Minecraft client, int pixelsPerBlock, SliceMode mode, float decay, boolean laggy, float yaw,
+			boolean deep) {
 		LocalPlayer player = client.player;
 		ClientLevel level = client.level;
 		if (player == null || level == null) {
@@ -109,7 +117,7 @@ final class SliceRenderer {
 
 		boolean moved = !pos.equals(lastPos);
 		boolean turned = Float.isNaN(lastYaw) || Math.abs(wrapDegrees(yaw - lastYaw)) > TURN_THRESHOLD;
-		boolean modeChanged = pixelsPerBlock != lastPixelsPerBlock || mode != lastMode;
+		boolean modeChanged = pixelsPerBlock != lastPixelsPerBlock || mode != lastMode || deep != lastDeep;
 		boolean recompute = laggy
 				? modeChanged || ticksSinceUpdate >= LAG_REFRESH_TICKS
 				: moved || turned || modeChanged || ticksSinceUpdate >= REFRESH_TICKS;
@@ -119,8 +127,9 @@ final class SliceRenderer {
 			lastYaw = yaw;
 			lastPixelsPerBlock = pixelsPerBlock;
 			lastMode = mode;
+			lastDeep = deep;
 			ticksSinceUpdate = 0;
-			compute(level, player, yaw, pixelsPerBlock, mode);
+			compute(level, player, yaw, pixelsPerBlock, mode, deep);
 		}
 
 		boolean bright = (System.currentTimeMillis() / LAVA_BLINK_MILLIS) % 2 == 0;
@@ -136,12 +145,15 @@ final class SliceRenderer {
 		lastNoisy = noisy;
 	}
 
-	private void compute(ClientLevel level, LocalPlayer player, float yaw, int pixelsPerBlock, SliceMode mode) {
+	private void compute(ClientLevel level, LocalPlayer player, float yaw, int pixelsPerBlock, SliceMode mode,
+			boolean deep) {
 		hasLava = false;
 		hasPortal = false;
 		int blocks = SIZE / pixelsPerBlock;
 		int behind = Math.max(1, BEHIND / pixelsPerBlock);
 		int above = (int) (blocks * ABOVE_FRACTION);
+		// The deep picture goes on where the normal one ends.
+		int top = deep ? above - blocks : above;
 
 		// Minecraft yaw: 0 = south (+Z), 90 = west (-X).
 		double rad = Math.toRadians(yaw);
@@ -162,7 +174,7 @@ final class SliceRenderer {
 			int z = (int) Math.floor(startZ + dirZ * dist);
 
 			for (int row = 0; row < blocks; row++) {
-				int y = feetY + above - row;
+				int y = feetY + top - row;
 				int argb;
 				if (y < minY || y > maxY) {
 					argb = SliceColors.AIR;
