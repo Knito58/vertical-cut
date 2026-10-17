@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "I": "minecraft:diamond",
+    "T": "minecraft:redstone_torch"
+  },
+  "pattern": [
+    "III",
+    "ITI",
+    "III"
+  ],
+  "result": {
+    "count": 1,
+    "id": "verticalcut:diamond_tube"
+  }
+}

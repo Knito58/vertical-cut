@@ -48,6 +48,9 @@ public class VerticalCutMod implements ModInitializer {
 	public static final CrtItem GOLD_CRT = registerCrt(CrtTier.GOLD);
 	/** Upgrades an Iron CRT to a Gold CRT on the smithing table. */
 	public static final Item GOLD_TUBE = registerItem("gold_tube");
+	public static final CrtItem DIAMOND_CRT = registerCrt(CrtTier.DIAMOND);
+	/** Upgrades a Gold CRT to a Diamond CRT on the smithing table. */
+	public static final Item DIAMOND_TUBE = registerItem("diamond_tube");
 	public static final MenuType<CrtMenu> CRT_MENU = Registry.register(BuiltInRegistries.MENU,
 			VerticalCut.id("crt_modules"), new MenuType<>(CrtMenu::new, FeatureFlagSet.of()));
 
@@ -88,6 +91,8 @@ public class VerticalCutMod implements ModInitializer {
 					tab.accept(IRON_TUBE);
 					tab.accept(GOLD_CRT);
 					tab.accept(GOLD_TUBE);
+					tab.accept(DIAMOND_CRT);
+					tab.accept(DIAMOND_TUBE);
 					tab.accept(DEPTH_GAUGE);
 				});
 
