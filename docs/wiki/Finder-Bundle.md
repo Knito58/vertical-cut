@@ -3,6 +3,8 @@
 A bundle with an **amethyst shard** in it, in a module slot. It makes chosen ores flash in the
 picture.
 
+![Three modules: a coal pouch, a depth gauge and a finder bundle holding an iron nugget and an amethyst shard](images/finder-bundle-gui.png)
+
 ## Samples
 Put a sample of each ore you want into the bundle. A sample is anything made of the ore:
 raw ore, ingot, a single nugget, gem, dust or block. Supported: coal, iron, copper, gold,
