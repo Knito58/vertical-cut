@@ -13,6 +13,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.flag.FeatureFlagSet;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -30,10 +32,16 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
  * single player and multiplayer.
  */
 public class VerticalCutMod implements ModInitializer {
+	static {
+		CrtComponents.init();
+	}
+
 	public static final CrtItem STONE_CRT = registerCrt(CrtTier.STONE);
 	public static final CrtItem COPPER_CRT = registerCrt(CrtTier.COPPER);
 	/** Upgrades a Stone CRT to a Copper CRT on the smithing table. */
 	public static final Item COPPER_TUBE = registerItem("copper_tube");
+	public static final MenuType<CrtMenu> CRT_MENU = Registry.register(BuiltInRegistries.MENU,
+			VerticalCut.id("crt_modules"), new MenuType<>(CrtMenu::new, FeatureFlagSet.of()));
 
 	/** Players whose client currently shows the cut. */
 	private static final Set<UUID> SCANNING = new HashSet<>();
@@ -81,8 +89,9 @@ public class VerticalCutMod implements ModInitializer {
 	}
 
 	/**
-	 * Burns one fuel unit for every scanning player at a pace that empties a
-	 * full tank in the configured seconds per coal, and refuels from coal.
+	 * Burns one fuel unit for every scanning player at a pace that burns one
+	 * coal in the configured seconds per coal. When the store runs dry the
+	 * CRT eats: from the coal pouch if it has one, else coal from the inventory.
 	 */
 	private static void tick(MinecraftServer server) {
 		// Spread FUEL_UNITS evenly over the configured time. A coal lasts at
@@ -103,18 +112,30 @@ public class VerticalCutMod implements ModInitializer {
 			// Refuel in the same step the tank runs dry, so the client sees
 			// "1 -> full" (hiccup) with coal, and "1 -> 0" (switch-off) only without.
 			int fuel = Math.max(0, CrtItem.fuel(crt) - 1);
-			if (fuel == 0 && eatCoal(player)) {
-				fuel = CrtItem.FUEL_UNITS;
+			if (fuel == 0) {
+				fuel = eat(player, crt);
 			}
 			CrtItem.setFuel(crt, fuel);
+			CrtPouch.updateEstimate(player.level(), crt);
+			if (player.containerMenu instanceof CrtMenu menu && menu.crt == crt) {
+				menu.reload();
+			}
 		}
 	}
 
-	/** Takes one coal or charcoal from the inventory. Creative players get it for free. */
-	private static boolean eatCoal(ServerPlayer player) {
+	/** Fuel units gained by eating; creative players get a coal for free. */
+	private static int eat(ServerPlayer player, ItemStack crt) {
 		if (player.getAbilities().instabuild) {
-			return true;
+			return CrtItem.FUEL_UNITS;
 		}
+		if (CrtItem.pouchIndex(CrtItem.modules(crt)) >= 0) {
+			return CrtPouch.eat(player, crt);
+		}
+		return eatCoal(player) ? CrtItem.FUEL_UNITS : 0;
+	}
+
+	/** Takes one coal or charcoal from the inventory. */
+	private static boolean eatCoal(ServerPlayer player) {
 		Inventory inventory = player.getInventory();
 		for (int i = 0; i < inventory.getContainerSize(); i++) {
 			ItemStack stack = inventory.getItem(i);

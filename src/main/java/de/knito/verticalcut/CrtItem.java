@@ -1,20 +1,34 @@
 package de.knito.verticalcut;
 
+import java.util.List;
+
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemContainerContents;
+import net.minecraft.world.level.Level;
 
 /**
- * The CRT ("Coal-powered Rock Tomograph"). Its fuel is stored as item
- * damage, so the vanilla durability bar doubles as a fuel gauge:
- * damage 0 is a full tank, damage {@link #EMPTY} is empty. The damage never
- * reaches the maximum, so the item can't break. A new CRT starts empty.
+ * The CRT ("Coal-powered Rock Tomograph").
  *
- * One coal fills {@link #FUEL_UNITS} units; how fast they burn depends on
- * the configured seconds per coal.
+ * Fuel is one number, the stored burning value in fuel units
+ * ({@link #FUEL_UNITS} per coal, up to {@link #MAX_FUEL}). The vanilla
+ * durability bar doubles as a gauge for the coal that is burning right now:
+ * damage 0 is a fresh coal, damage {@link #EMPTY} is nothing left. The damage
+ * never reaches the maximum, so the item can't break. A new CRT starts empty.
+ *
+ * Sneak + right-click opens the module slots, if the tier has any.
  */
 public class CrtItem extends Item {
 	public static final int FUEL_UNITS = 240;
+	public static final int MAX_FUEL = 256 * FUEL_UNITS;
 	public static final int EMPTY = FUEL_UNITS;
 	public static final int MAX_DAMAGE = FUEL_UNITS + 1;
 
@@ -26,21 +40,77 @@ public class CrtItem extends Item {
 	}
 
 	public static int fuel(ItemStack stack) {
+		Integer stored = stack.get(CrtComponents.FUEL);
+		if (stored != null) {
+			return stored;
+		}
+		// CRTs from before the fuel store only had the gauge.
 		return Math.max(0, EMPTY - stack.getDamageValue());
 	}
 
 	public static void setFuel(ItemStack stack, int units) {
-		stack.setDamageValue(EMPTY - Math.clamp(units, 0, FUEL_UNITS));
+		int fuel = Math.clamp(units, 0, MAX_FUEL);
+		stack.set(CrtComponents.FUEL, fuel);
+		int burning = fuel == 0 ? 0 : (fuel - 1) % FUEL_UNITS + 1;
+		stack.setDamageValue(EMPTY - burning);
 	}
 
-	/** The CRT the player holds, offhand first, or {@link ItemStack#EMPTY}. */
+	/** The modules in the CRT's slots; empty stacks for free slots. */
+	public static NonNullList<ItemStack> modules(ItemStack crt) {
+		int size = crt.getItem() instanceof CrtItem item ? item.tier.moduleSlots : 0;
+		NonNullList<ItemStack> modules = NonNullList.withSize(size, ItemStack.EMPTY);
+		crt.getOrDefault(CrtComponents.MODULES, ItemContainerContents.EMPTY).copyInto(modules);
+		return modules;
+	}
+
+	public static void setModules(ItemStack crt, List<ItemStack> modules) {
+		crt.set(CrtComponents.MODULES, ItemContainerContents.fromItems(modules));
+	}
+
+	/** Index of the coal pouch (any bundle) among the modules, or -1. */
+	public static int pouchIndex(List<ItemStack> modules) {
+		for (int i = 0; i < modules.size(); i++) {
+			if (isPouch(modules.get(i))) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	/** Anything that works like a bundle, modded bundles included. */
+	public static boolean isPouch(ItemStack stack) {
+		return !stack.isEmpty() && stack.has(DataComponents.BUNDLE_CONTENTS);
+	}
+
+	/** The CRT the player holds, main hand first (the order Minecraft tries hands in), or {@link ItemStack#EMPTY}. */
 	public static ItemStack held(Player player) {
-		if (player.getOffhandItem().getItem() instanceof CrtItem) {
-			return player.getOffhandItem();
-		}
+		InteractionHand hand = heldHand(player);
+		return hand == null ? ItemStack.EMPTY : player.getItemInHand(hand);
+	}
+
+	public static InteractionHand heldHand(Player player) {
 		if (player.getMainHandItem().getItem() instanceof CrtItem) {
-			return player.getMainHandItem();
+			return InteractionHand.MAIN_HAND;
 		}
-		return ItemStack.EMPTY;
+		if (player.getOffhandItem().getItem() instanceof CrtItem) {
+			return InteractionHand.OFF_HAND;
+		}
+		return null;
+	}
+
+	@Override
+	public InteractionResult use(Level level, Player player, InteractionHand hand) {
+		if (!player.isShiftKeyDown()) {
+			return InteractionResult.PASS;
+		}
+		if (player instanceof ServerPlayer serverPlayer) {
+			if (tier.moduleSlots == 0) {
+				serverPlayer.sendSystemMessage(Component.translatable("verticalcut.crt.no_slots"), true);
+			} else {
+				serverPlayer.openMenu(new SimpleMenuProvider((id, inventory, p) -> new CrtMenu(id, inventory),
+						Component.translatable("verticalcut.container.modules")));
+			}
+		}
+		return InteractionResult.SUCCESS;
 	}
 }

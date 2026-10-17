@@ -4,11 +4,14 @@ import java.util.Random;
 
 import com.mojang.blaze3d.platform.InputConstants;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.Component;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -17,17 +20,20 @@ import net.minecraft.world.item.Items;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 
+import de.knito.verticalcut.CrtComponents;
 import de.knito.verticalcut.CrtItem;
 import de.knito.verticalcut.CrtTier;
 import de.knito.verticalcut.ScanStatePayload;
 import de.knito.verticalcut.VerticalCut;
 import de.knito.verticalcut.VerticalCutConfig;
+import de.knito.verticalcut.VerticalCutMod;
 
 /**
  * Client entrypoint: key mappings, deciding what the cut may show (depends on
@@ -41,6 +47,8 @@ public class VerticalCutClient implements ClientModInitializer {
 
 	/** Below this share of a full tank the picture starts to decay. */
 	private static final float DECAY_START = 0.1f;
+	/** Fuel units that fill the coal bar beside the frame: 64 coals. */
+	private static final int COAL_BAR_FULL = 64 * CrtItem.FUEL_UNITS;
 
 	private static final SliceRenderer SLICE = new SliceRenderer();
 	private static final CrtEffects EFFECTS = new CrtEffects();
@@ -60,6 +68,8 @@ public class VerticalCutClient implements ClientModInitializer {
 	private static boolean outOfCoal;
 	/** Picture is decaying and there is no spare coal: small coal warning in the corner. */
 	private static boolean lowOnCoal;
+	/** Share of the coal bar beside the frame (stored fuel plus pouch); -1 = no pouch, no bar. */
+	private static float coalBar;
 	/** Last scanning state sent to the server; null = send again. */
 	private static Boolean sentScanning;
 
@@ -72,6 +82,18 @@ public class VerticalCutClient implements ClientModInitializer {
 
 		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> sentScanning = null);
 		ClientTickEvents.END_CLIENT_TICK.register(VerticalCutClient::tick);
+		MenuScreens.register(VerticalCutMod.CRT_MENU, CrtScreen::new);
+		ItemTooltipCallback.EVENT.register((stack, context, type, lines) -> {
+			if (stack.getItem() instanceof CrtItem) {
+				lines.add(Component.translatable("verticalcut.crt.stored", CrtScreen.coals(CrtItem.fuel(stack)))
+						.withStyle(ChatFormatting.GRAY));
+				Integer pouch = stack.get(CrtComponents.POUCH_FUEL);
+				if (pouch != null) {
+					lines.add(Component.translatable("verticalcut.crt.pouch", CrtScreen.coals(pouch))
+							.withStyle(ChatFormatting.GRAY));
+				}
+			}
+		});
 		HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT, VerticalCut.id("slice"), VerticalCutClient::extract);
 	}
 
@@ -88,6 +110,7 @@ public class VerticalCutClient implements ClientModInitializer {
 		colorPicture = true;
 		outOfCoal = false;
 		lowOnCoal = false;
+		coalBar = -1;
 		if (client.player == null) {
 			return;
 		}
@@ -118,7 +141,13 @@ public class VerticalCutClient implements ClientModInitializer {
 		float share = (float) fuel / CrtItem.FUEL_UNITS;
 		decay = fuel == 0 ? 1f : Math.max(0f, 1f - share / DECAY_START);
 		showing = fuel > 0 || EFFECTS.dying();
-		boolean noSpare = !client.player.getAbilities().instabuild && !hasCoal(client.player);
+		// With a pouch the CRT only eats from the pouch, without one only inventory coal.
+		Integer pouch = crt.get(CrtComponents.POUCH_FUEL);
+		boolean spare = pouch != null ? pouch > 0 : hasCoal(client.player);
+		boolean noSpare = !client.player.getAbilities().instabuild && !spare;
+		if (pouch != null) {
+			coalBar = Math.min(1f, (float) (fuel + pouch) / COAL_BAR_FULL);
+		}
 		outOfCoal = fuel == 0 && !EFFECTS.dying() && noSpare;
 		lowOnCoal = decay > 0 && noSpare;
 		if (showing) {
@@ -225,10 +254,25 @@ public class VerticalCutClient implements ClientModInitializer {
 		graphics.blit(RenderPipelines.GUI_TEXTURED, SLICE.textureId, sx, sy, 0, 0, shown, shown, tex, tex, tex, tex,
 				(pictureAlpha << 24) | 0xFFFFFF);
 		graphics.outline(sx - 1, sy - 1, shown + 2, shown + 2, 0xFFAAAAAA);
+		if (coalBar >= 0) {
+			drawCoalBar(graphics, x, y, size, config.corner.right());
+		}
 
 		if (lowOnCoal && blinkOn) {
 			graphics.item(new ItemStack(Items.COAL), sx + shown - 18, sy + 2);
 		}
+	}
+
+	/**
+	 * Thin bar on the inner side of the frame (towards the middle of the
+	 * screen), filling from the bottom: stored fuel plus the pouch. It stays
+	 * with the frame and doesn't bulge.
+	 */
+	private static void drawCoalBar(GuiGraphicsExtractor graphics, int x, int y, int size, boolean rightCorner) {
+		int bx = rightCorner ? x - 5 : x + size + 2;
+		graphics.fill(bx, y - 1, bx + 3, y + size + 1, 0xC0101010);
+		int filled = Math.round(size * coalBar);
+		graphics.fill(bx, y + size - filled, bx + 3, y + size, 0xFFE0A030);
 	}
 
 	/**

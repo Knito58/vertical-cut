@@ -6,8 +6,8 @@ package de.knito.verticalcut;
  */
 public enum CrtTier {
 	// Crude cave finder: no ores, a lagging picture, frequent flicker with a loud buzz.
-	STONE("stone_crt", 4, false, false, false, true, 10, 30, 0.5f, 0.5f),
-	COPPER("copper_crt", 4, false, false, true, false, 60, 180, 0.4f, 0.25f);
+	STONE("stone_crt", 4, false, false, false, true, 10, 30, 0.5f, 0.5f, 0),
+	COPPER("copper_crt", 4, false, false, true, false, 60, 180, 0.4f, 0.25f, 1);
 
 	public final String itemName;
 	/** Pixels per block when zoom can't be switched. */
@@ -25,9 +25,12 @@ public enum CrtTier {
 	/** Chance that a flicker buzzes, and how loud. */
 	public final float buzzChance;
 	public final float buzzVolume;
+	/** How many modules (coal pouch, ...) fit into this CRT. */
+	public final int moduleSlots;
 
 	CrtTier(String itemName, int pixelsPerBlock, boolean color, boolean switchableZoom, boolean showsOres,
-			boolean laggy, int flickerMinSeconds, int flickerMaxSeconds, float buzzChance, float buzzVolume) {
+			boolean laggy, int flickerMinSeconds, int flickerMaxSeconds, float buzzChance, float buzzVolume,
+			int moduleSlots) {
 		this.itemName = itemName;
 		this.pixelsPerBlock = pixelsPerBlock;
 		this.color = color;
@@ -38,5 +41,6 @@ public enum CrtTier {
 		this.flickerMaxSeconds = flickerMaxSeconds;
 		this.buzzChance = buzzChance;
 		this.buzzVolume = buzzVolume;
+		this.moduleSlots = moduleSlots;
 	}
 }
