@@ -70,8 +70,8 @@ public final class VerticalCutConfig {
 	/** Gulp and burp when the CRT swallows a coal. Client only. */
 	public boolean sounds = true;
 	public FigureColor figureColor = FigureColor.YELLOW;
-	/** Zoom key: CRTs that can zoom (Gold) show the closer picture. */
-	public boolean zoomedIn = false;
+	/** Zoom chosen with the zoom key, in pixels per block; CRTs that can't show it use their own. */
+	public int zoom = 2;
 
 	public static VerticalCutConfig get() {
 		if (instance == null) {

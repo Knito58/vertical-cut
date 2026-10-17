@@ -58,6 +58,7 @@ final class SliceRenderer {
 	private SliceMode lastMode;
 	private boolean lastDeep;
 	private Finder lastFinder = Finder.NONE;
+	private int lastThickness = 1;
 	/** Rows of blocks from the top of the shown picture down to the feet; negative = feet above it. */
 	private int lastTop;
 	private int ticksSinceUpdate;
@@ -105,9 +106,10 @@ final class SliceRenderer {
 	 * @param yaw direction of the cut (degrees, Minecraft yaw), usually the view's
 	 * @param deep show the picture one picture height lower (spyglass)
 	 * @param finder ores that flash (finder bundle), {@link Finder#NONE} for none
+	 * @param thickness blocks across the cut in which finds show (odd); 1 = only the cut
 	 */
 	void tick(Minecraft client, int pixelsPerBlock, SliceMode mode, float decay, boolean laggy, float yaw,
-			boolean deep, Finder finder) {
+			boolean deep, Finder finder, int thickness) {
 		LocalPlayer player = client.player;
 		ClientLevel level = client.level;
 		if (player == null || level == null) {
@@ -125,7 +127,7 @@ final class SliceRenderer {
 		boolean moved = !pos.equals(lastPos);
 		boolean turned = Float.isNaN(lastYaw) || Math.abs(wrapDegrees(yaw - lastYaw)) > TURN_THRESHOLD;
 		boolean modeChanged = pixelsPerBlock != lastPixelsPerBlock || mode != lastMode || deep != lastDeep
-				|| !finder.equals(lastFinder);
+				|| !finder.equals(lastFinder) || thickness != lastThickness;
 		boolean recompute = laggy
 				? modeChanged || ticksSinceUpdate >= LAG_REFRESH_TICKS
 				: moved || turned || modeChanged || ticksSinceUpdate >= REFRESH_TICKS;
@@ -137,8 +139,9 @@ final class SliceRenderer {
 			lastMode = mode;
 			lastDeep = deep;
 			lastFinder = finder;
+			lastThickness = thickness;
 			ticksSinceUpdate = 0;
-			compute(level, player, yaw, pixelsPerBlock, mode, deep, finder);
+			compute(level, player, yaw, pixelsPerBlock, mode, deep, finder, thickness);
 		}
 
 		boolean bright = (System.currentTimeMillis() / LAVA_BLINK_MILLIS) % 2 == 0;
@@ -157,7 +160,7 @@ final class SliceRenderer {
 	}
 
 	private void compute(ClientLevel level, LocalPlayer player, float yaw, int pixelsPerBlock, SliceMode mode,
-			boolean deep, Finder finder) {
+			boolean deep, Finder finder, int thickness) {
 		hasLava = false;
 		hasPortal = false;
 		hasFinder = false;
@@ -175,11 +178,16 @@ final class SliceRenderer {
 		double rad = Math.toRadians(yaw);
 		double dirX = -Math.sin(rad);
 		double dirZ = Math.cos(rad);
+		// Across the cut, for the side layers of a thick slice.
+		double sideX = -dirZ;
+		double sideZ = dirX;
+		int sides = thickness / 2;
 
 		double startX = player.getX();
 		double startZ = player.getZ();
 
 		BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+		BlockPos.MutableBlockPos side = new BlockPos.MutableBlockPos();
 
 		for (int col = 0; col < blocks; col++) {
 			double dist = col - behind + 0.5;
@@ -200,6 +208,9 @@ final class SliceRenderer {
 					if (!finder.isEmpty() && finder.matches(level, cursor, state)) {
 						argb = SliceColors.FINDER_MARK | argb & 0xFFFFFF;
 						hasFinder = true;
+					} else if (sides > 0 && !SliceColors.isFind(state)) {
+						argb = sideFind(level, mode, finder, side, startX + dirX * dist, startZ + dirZ * dist,
+								sideX, sideZ, y, sides, argb);
 					}
 					hasLava |= argb == SliceColors.LAVA_BLINK;
 					hasPortal |= isPortal(argb);
@@ -207,6 +218,34 @@ final class SliceRenderer {
 				fill(col, row, pixelsPerBlock, argb);
 			}
 		}
+	}
+
+	/**
+	 * Thick slice: the nearest find (ore, chest, ...) beside the cut, nearer
+	 * layers first, drawn darker than one in the cut itself; else the
+	 * picture's own color stays.
+	 */
+	private int sideFind(ClientLevel level, SliceMode mode, Finder finder, BlockPos.MutableBlockPos side,
+			double cx, double cz, double sideX, double sideZ, int y, int sides, int argb) {
+		for (int k = 1; k <= sides; k++) {
+			for (int sign = 1; sign >= -1; sign -= 2) {
+				side.set((int) Math.floor(cx + sideX * k * sign), y, (int) Math.floor(cz + sideZ * k * sign));
+				BlockState state = level.getBlockState(side);
+				boolean found = !finder.isEmpty() && finder.matches(level, side, state);
+				if (!found && !SliceColors.isFind(state)) {
+					continue;
+				}
+				int color = SliceColors.darker(mode == SliceMode.COLOR
+						? SliceColors.colorOf(level, side, state)
+						: SliceColors.monochromeOf(level, side, state, mode == SliceMode.MONOCHROME));
+				if (found) {
+					hasFinder = true;
+					return SliceColors.FINDER_MARK | color & 0xFFFFFF;
+				}
+				return color;
+			}
+		}
+		return argb;
 	}
 
 	/** Writes one block as a square of pixels into the base picture. */

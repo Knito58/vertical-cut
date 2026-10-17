@@ -171,10 +171,10 @@ public class VerticalCutClient implements ClientModInitializer {
 				details.add(Component.translatable("verticalcut.tooltip.crt.compass", lockKey.getTranslatedKeyMessage()));
 				details.add(Component.translatable("verticalcut.tooltip.crt.spyglass", spyglassKey.getTranslatedKeyMessage()));
 			}
-			if (crtItem.tier.zoomedInPixelsPerBlock > 0) {
+			if (crtItem.tier.canZoom()) {
 				details.add(Component.translatable("verticalcut.tooltip.crt.zoom", zoomKey.getTranslatedKeyMessage()));
 			}
-			if (crtItem.tier == CrtTier.STONE || crtItem.tier == CrtTier.COPPER || crtItem.tier == CrtTier.IRON) {
+			if (crtItem.tier != CrtTier.DIAMOND) {
 				details.add(Component.translatable(prefix + "upgrade"));
 			}
 			addDetails(lines, details);
@@ -186,6 +186,8 @@ public class VerticalCutClient implements ClientModInitializer {
 			addDetails(lines, List.of(Component.translatable("verticalcut.tooltip.iron_tube.use")));
 		} else if (stack.is(VerticalCutMod.GOLD_TUBE)) {
 			addDetails(lines, List.of(Component.translatable("verticalcut.tooltip.gold_tube.use")));
+		} else if (stack.is(VerticalCutMod.DIAMOND_TUBE)) {
+			addDetails(lines, List.of(Component.translatable("verticalcut.tooltip.diamond_tube.use")));
 		}
 	}
 
@@ -256,16 +258,14 @@ public class VerticalCutClient implements ClientModInitializer {
 		}
 		EFFECTS.tickInterference(client, interference, fuel > 0);
 		colorPicture = tier.color;
-		if (zoomToggled && tier.zoomedInPixelsPerBlock > 0 && fuel > 0) {
-			config.zoomedIn = !config.zoomedIn;
+		if (zoomToggled && tier.canZoom() && fuel > 0) {
+			config.zoom = tier.nextZoom(config.zoom);
 			config.save();
 			// Like an old TV changing channels: a moment of snow and a click.
 			EFFECTS.refocus();
 			CrtEffects.play(client, SoundEvents.UI_BUTTON_CLICK.value(), 0.8f + RANDOM.nextFloat() * 0.3f, 0.3f);
 		}
-		int pixelsPerBlock = tier.zoomedInPixelsPerBlock > 0 && config.zoomedIn
-				? tier.zoomedInPixelsPerBlock
-				: tier.pixelsPerBlock;
+		int pixelsPerBlock = tier.pixelsPerBlock(config.zoom);
 
 		float share = (float) fuel / CrtItem.FUEL_UNITS;
 		decay = fuel == 0 ? 1f : Math.max(0f, 1f - share / DECAY_START);
@@ -292,7 +292,7 @@ public class VerticalCutClient implements ClientModInitializer {
 			float pictureDecay = Math.max(decay, EFFECTS.flickerStrength());
 			float yaw = cutYaw != null ? cutYaw : client.player.getYRot();
 			Finder finder = tier.showsOres ? Finder.of(CrtItem.finderSamples(CrtItem.modules(crt))) : Finder.NONE;
-			SLICE.tick(client, pixelsPerBlock, mode, pictureDecay, tier.laggy, yaw, deepView, finder);
+			SLICE.tick(client, pixelsPerBlock, mode, pictureDecay, tier.laggy, yaw, deepView, finder, tier.thickness);
 		}
 	}
 
