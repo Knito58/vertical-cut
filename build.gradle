@@ -46,9 +46,11 @@ dependencies {
 
 	// Test only, not a dependency of the mod: Metal Bundles (iron bundle etc.) to try modded
 	// bundles as coal pouch in runClient. Puzzles Lib and Forge Config API Port are what it needs.
-	localRuntime "maven.modrinth:metal-bundles:26.3.3"
-	localRuntime "maven.modrinth:puzzles-lib:26.3.15"
-	localRuntime "maven.modrinth:forge-config-api-port:26.3.1"
+	// These authors use the same version number for Fabric and NeoForge, so pin Modrinth's
+	// version IDs; the plain number fetches the NeoForge file, which Fabric silently ignores.
+	localRuntime "maven.modrinth:metal-bundles:TQYgbkWW" // 26.3.3 Fabric
+	localRuntime "maven.modrinth:puzzles-lib:68hLXNWE" // 26.3.15 Fabric
+	localRuntime "maven.modrinth:forge-config-api-port:JpKvrr9J" // 26.3.1 Fabric
 	// Just Enough Items, to check that our recipes show up there (also test only).
 	localRuntime "maven.modrinth:jei:31.15.0.75"
 }
