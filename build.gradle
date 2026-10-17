@@ -31,6 +31,13 @@ loom {
 			sourceSet sourceSets.client
 		}
 	}
+
+	// Own folder for the dev server, so client and server can run at the same time.
+	runs {
+		server {
+			runDir "run-server"
+		}
+	}
 }
 
 dependencies {
