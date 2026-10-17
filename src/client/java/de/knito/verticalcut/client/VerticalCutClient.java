@@ -111,8 +111,8 @@ public class VerticalCutClient implements ClientModInitializer {
 
 		int fuel = CrtItem.fuel(crt);
 		EFFECTS.tick(client, fuel);
-		EFFECTS.tickFlicker(client, tier, fuel > 0);
 		CrtTier tier = ((CrtItem) crt.getItem()).tier;
+		EFFECTS.tickFlicker(client, tier, fuel > 0);
 		colorPicture = tier.color;
 
 		float share = (float) fuel / CrtItem.FUEL_UNITS;
