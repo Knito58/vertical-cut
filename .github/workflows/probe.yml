@@ -15,15 +15,10 @@ jobs:
       - name: vanilla data
         run: |
           M=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-common.jar
-          ls $HOME/.gradle/caches/fabric-loom/26.3/
-          unzip -l $M | grep -E "data/minecraft/(advancement|advancements)/recipes/(tools|combat)/(compass|clock|shield|spyglass)" | head
-          for f in $(unzip -l $M | grep -oE "data/minecraft/[a-z_]+/recipes/tools/(compass|spyglass)\.json"); do echo "=== $f"; unzip -p $M $f; done
-          for f in $(unzip -l $M | grep -oE "data/minecraft/[a-z_]+/(compass|spyglass)\.json"); do echo "=== $f"; unzip -p $M $f; done
-      - name: server
-        run: |
-          mkdir -p run && echo "eula=true" > run/eula.txt
-          (timeout 600 ./gradlew runServer > server.log 2>&1 &)
-          for i in $(seq 1 120); do sleep 5; grep -qE "Done \(|Failed to load|Exception|Stopping server" server.log && break; done
-          sleep 5
-          grep -nE "ERROR|WARN|Exception|Caused|Failed|verticalcut|Done \(" server.log | head -80
-          grep -n -A30 "Failed to load registries\|Errors in registry" server.log | head -120
+          C=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-client-only.jar
+          for f in data/minecraft/recipe/netherite_sword_smithing.json data/minecraft/advancement/recipes/combat/netherite_sword_smithing.json; do echo "=== $f"; unzip -p $M $f; done
+          for c in net.minecraft.client.sounds.SoundManager net.minecraft.client.resources.sounds.SimpleSoundInstance; do echo "=== $c"; javap -cp "$C:$M" "$c" | head -60; done
+          javap -cp "$M" net.minecraft.sounds.SoundEvents | grep -iE "BEE_LOOP|RESPAWN_ANCHOR_AMBIENT"
+          javap -cp "$M" net.minecraft.world.level.block.state.BlockBehaviour\$BlockStateBase | grep -iE "getFluidState|liquid"
+          javap -cp "$M" net.minecraft.world.level.material.FluidState | grep -iE " is\(|isEmpty|getType"
+          javap -cp "$M" net.minecraft.tags.FluidTags | head -20
