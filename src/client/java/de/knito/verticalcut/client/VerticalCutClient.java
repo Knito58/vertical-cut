@@ -324,12 +324,11 @@ public class VerticalCutClient implements ClientModInitializer {
 		int tex = SliceRenderer.SIZE;
 		graphics.blit(RenderPipelines.GUI_TEXTURED, SLICE.textureId, sx, sy, 0, 0, shown, shown, tex, tex, tex, tex,
 				(pictureAlpha << 24) | 0xFFFFFF);
-		int figureX = figureLeft(sx, shown);
-		if (depthGauge) {
-			drawRuler(graphics, client, sx, sy, shown, figureX - 1);
-		}
-		drawFigure(graphics, figureX, figureBottom(sy, shown),
+		int playerLeft = drawPlayer(graphics, client, sx, sy, shown,
 				colorPicture ? config.figureColor.argb : 0xFFFFFFFF);
+		if (depthGauge) {
+			drawRuler(graphics, client, sx, sy, shown, playerLeft);
+		}
 		graphics.outline(sx - 1, sy - 1, shown + 2, shown + 2, 0xFFAAAAAA);
 		if (coalBar >= 0) {
 			drawCoalBar(graphics, x, y, size, config.corner.right());
@@ -394,7 +393,7 @@ public class VerticalCutClient implements ClientModInitializer {
 		}
 	}
 
-	/** The player in the picture (# = figure), drawn in GUI pixels with a black outline. */
+	/** The player in the picture (# = figure), drawn with a black outline. */
 	private static final String[] FIGURE = {
 			".###.",
 			".###.",
@@ -406,43 +405,63 @@ public class VerticalCutClient implements ClientModInitializer {
 			".#.#.",
 			"#...#",
 	};
-
-	/** Left edge of the stick figure, centered on the player's block column. */
-	private static int figureLeft(int sx, int shown) {
-		double scale = (double) shown / SliceRenderer.SIZE;
-		double center = sx + (SLICE.feetPixelColumn() + SLICE.pixelsPerBlock() / 2.0) * scale;
-		return (int) Math.round(center - FIGURE[0].length() / 2.0);
-	}
-
-	/** Bottom edge of the stick figure: the bottom of the player's feet block. */
-	private static int figureBottom(int sy, int shown) {
-		double scale = (double) shown / SliceRenderer.SIZE;
-		int ppb = SLICE.pixelsPerBlock();
-		return sy + (int) Math.round((SLICE.feetPixelRow() - ppb / 2 + ppb) * scale);
-	}
+	/** Below this many screen pixels per figure pixel the player is only a line. */
+	private static final double MIN_FIGURE_PIXEL = 0.75;
 
 	/**
-	 * The stick figure standing for the player, always the same size so it
-	 * stays recognizable at every zoom.
+	 * The player standing on the feet block: a stick figure about two blocks
+	 * tall, each figure pixel a whole number of screen pixels so it stays
+	 * sharp. When two blocks are too few pixels for a figure (zoomed far
+	 * out), a line two blocks tall stands for the player. Both have a black
+	 * outline of one figure (or screen) pixel.
+	 *
+	 * @return the GUI x of the left edge of the outline, where the ruler's feet line ends
 	 */
-	private static void drawFigure(GuiGraphicsExtractor graphics, int left, int bottom, int argb) {
-		int top = bottom - FIGURE.length;
-		for (int pass = 0; pass < 2; pass++) {
-			for (int row = 0; row < FIGURE.length; row++) {
-				for (int col = 0; col < FIGURE[row].length(); col++) {
-					if (FIGURE[row].charAt(col) != '#') {
-						continue;
-					}
-					int px = left + col;
-					int py = top + row;
-					if (pass == 0) {
-						graphics.fill(px - 1, py - 1, px + 2, py + 2, 0xFF000000);
-					} else {
-						graphics.fill(px, py, px + 1, py + 1, argb);
+	private static int drawPlayer(GuiGraphicsExtractor graphics, Minecraft client, int sx, int sy, int shown,
+			int argb) {
+		float guiScale = (float) client.getWindow().getGuiScale();
+		double scale = (double) shown / SliceRenderer.SIZE * guiScale;
+		int ppb = SLICE.pixelsPerBlock();
+		// In screen pixels: the middle of the player's column and the bottom of the feet block.
+		double center = sx * guiScale + (SLICE.feetPixelColumn() + ppb / 2.0) * scale;
+		int bottom = (int) Math.round(sy * guiScale + (SLICE.feetPixelRow() - ppb / 2 + ppb) * scale);
+		double twoBlocks = 2 * ppb * scale;
+		double pixel = twoBlocks / FIGURE.length;
+
+		graphics.pose().pushMatrix();
+		graphics.pose().scale(1 / guiScale, 1 / guiScale);
+		int left;
+		if (pixel < MIN_FIGURE_PIXEL) {
+			int x = (int) Math.floor(center);
+			int top = bottom - Math.max(2, (int) Math.round(twoBlocks));
+			graphics.fill(x - 1, top - 1, x + 2, bottom + 1, 0xFF000000);
+			graphics.fill(x, top, x + 1, bottom, argb);
+			left = x - 1;
+		} else {
+			int n = Math.max(1, (int) Math.round(pixel));
+			int width = FIGURE[0].length() * n;
+			int figureLeft = (int) Math.round(center - width / 2.0);
+			int top = bottom - FIGURE.length * n;
+			for (int pass = 0; pass < 2; pass++) {
+				for (int row = 0; row < FIGURE.length; row++) {
+					for (int col = 0; col < FIGURE[row].length(); col++) {
+						if (FIGURE[row].charAt(col) != '#') {
+							continue;
+						}
+						int px = figureLeft + col * n;
+						int py = top + row * n;
+						if (pass == 0) {
+							graphics.fill(px - n, py - n, px + 2 * n, py + 2 * n, 0xFF000000);
+						} else {
+							graphics.fill(px, py, px + n, py + n, argb);
+						}
 					}
 				}
 			}
+			left = figureLeft - n;
 		}
+		graphics.pose().popMatrix();
+		return (int) Math.floor(left / guiScale);
 	}
 
 	/**
