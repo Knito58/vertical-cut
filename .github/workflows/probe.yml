@@ -6,17 +6,11 @@ jobs:
   probe:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-java@v5
-        with:
-          java-version: '25'
-          distribution: 'microsoft'
-      - run: chmod +x ./gradlew && ./gradlew build -q
       - name: probe
         run: |
           set +e +o pipefail
-          M=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-common.jar
-          C=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-client-only.jar
-          javap -p -cp "$C:$M" net.minecraft.client.gui.screens.inventory.AbstractContainerScreen | grep -E "AbstractContainerScreen\(|imageWidth|leftPos|topPos"
-          javap -p -cp "$M" net.minecraft.world.inventory.Slot | grep -E "container|Slot\("
-          javap -p -cp "$M" net.minecraft.world.inventory.AbstractContainerMenu | grep -E " slots;"
+          for c in metal-bundles/26.3.3 metal-bundles/TQYgbkWW puzzles-lib/26.3.15 puzzles-lib/68hLXNWE forge-config-api-port/26.3.1 forge-config-api-port/JpKvrr9J; do
+            s=${c%/*}; v=${c#*/}
+            curl -sSL -o t.jar "https://api.modrinth.com/maven/maven/modrinth/$s/$v/$s-$v.jar"
+            echo "$c: $(unzip -l t.jar | grep -oE 'fabric.mod.json|neoforge.mods.toml|META-INF/mods.toml' | head -1)"
+          done
