@@ -2,6 +2,8 @@
 
 The starter device. A crude cave finder.
 
+![The Stone CRT near a cave: grey stone, black caves, you as the stick figure](images/stone-crt.png)
+
 ## Recipe
 ```
 C G C      C = cobblestone, blackstone or cobbled deepslate
