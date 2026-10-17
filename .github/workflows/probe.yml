@@ -9,7 +9,8 @@ jobs:
       - name: modrinth
         run: |
           set +e +o pipefail
-          for q in "iron bundle" "bundles" "bundle" "better bundles" "backpack"; do
-            echo "=== $q"
-            curl -sS -G "https://api.modrinth.com/v2/search" --data-urlencode "query=$q" --data-urlencode 'facets=[["versions:26.3"],["categories:fabric"]]' --data-urlencode 'limit=12' | jq -r '.hits[] | "\(.slug) | \(.title) | \(.downloads) | \(.description)"'
-          done
+          curl -sS -G "https://api.modrinth.com/v2/project/metal-bundles/version" --data-urlencode 'loaders=["fabric"]' --data-urlencode 'game_versions=["26.3"]' | jq -r '.[0:3][] | "\(.version_number) | \(.id) | \(.files[0].filename) | deps: \(.dependencies|tostring)"'
+          curl -sS "https://api.modrinth.com/v2/project/metal-bundles" | jq -r '.description, .license.id'
+          for id in $(curl -sS -G "https://api.modrinth.com/v2/project/metal-bundles/version" --data-urlencode 'loaders=["fabric"]' --data-urlencode 'game_versions=["26.3"]' | jq -r '.[0].dependencies[].project_id'); do curl -sS https://api.modrinth.com/v2/project/$id | jq -r '"dep: \(.slug) \(.title)"'; done
+          url=$(curl -sS -G "https://api.modrinth.com/v2/project/metal-bundles/version" --data-urlencode 'loaders=["fabric"]' --data-urlencode 'game_versions=["26.3"]' | jq -r '.[0].files[0].url')
+          curl -sSL -o mb.jar "$url" && unzip -p mb.jar fabric.mod.json; unzip -l mb.jar | grep -iE "lang/en_us|recipe" | head -20
