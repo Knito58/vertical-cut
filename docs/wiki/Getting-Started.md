@@ -39,6 +39,8 @@ torch (as template) + Stone CRT + Copper Picture Tube gives the [Copper CRT](Cop
 shows ores. The fuel in the CRT carries over. The advancement tab "Vertical Cut" has a riddle for each
 tier and shows how far you have come.
 
+![The Vertical Cut advancement tab: Stone, Copper, Iron, Gold, Diamond and Netherite CRT in a row](images/advancements.png)
+
 ## Keys
 | Key | What it does |
 |---|---|
