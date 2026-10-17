@@ -19,7 +19,7 @@ import de.knito.verticalcut.VerticalCutConfig.FigureColor;
  * effect immediately; they are written to disk when the screen closes.
  */
 public class VerticalCutConfigScreen extends Screen {
-	private static final int BUTTON_WIDTH = 200;
+	private static final int BUTTON_WIDTH = 310;
 	private static final int ROW = 22;
 
 	private final Screen parent;

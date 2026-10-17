@@ -53,6 +53,9 @@ Opacity and the settings screen have keys too, but they are unbound. Bind them i
 Options → Controls → Key Binds → Vertical Cut.
 
 ## Settings
+
+![The Vertical Cut settings screen](images/settings.png)
+
 Mod Menu → Vertical Cut → Configure: CRT must be in hand (or anywhere in the inventory), corner,
 distance from the edge, size, opacity, CRT sounds, seconds per coal (60 to 600), the color of
 your stick figure, and color blind colors (blue instead of green). Hold **Shift** over any
