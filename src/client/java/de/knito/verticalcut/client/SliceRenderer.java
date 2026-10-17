@@ -59,6 +59,7 @@ final class SliceRenderer {
 	private int ticksSinceUpdate;
 	private boolean lastNoisy;
 	private boolean hasLava;
+	private boolean hasPortal;
 	private boolean lavaBright;
 
 	boolean isReady() {
@@ -104,7 +105,8 @@ final class SliceRenderer {
 		}
 
 		boolean bright = (System.currentTimeMillis() / LAVA_BLINK_MILLIS) % 2 == 0;
-		boolean blink = hasLava && bright != lavaBright;
+		// Portal blocks each blink in their own rhythm, so redraw every tick while one is seen.
+		boolean blink = hasLava && bright != lavaBright || hasPortal;
 		lavaBright = bright;
 
 		// A decaying picture changes every tick (noise), a healthy one only when recomputed.
@@ -117,6 +119,7 @@ final class SliceRenderer {
 
 	private void compute(ClientLevel level, LocalPlayer player, float yaw, int pixelsPerBlock, SliceMode mode) {
 		hasLava = false;
+		hasPortal = false;
 		int blocks = SIZE / pixelsPerBlock;
 		int behind = Math.max(1, BEHIND / pixelsPerBlock);
 		int above = (int) (blocks * ABOVE_FRACTION);
@@ -151,6 +154,7 @@ final class SliceRenderer {
 							? SliceColors.colorOf(level, cursor, state)
 							: SliceColors.monochromeOf(level, cursor, state, mode == SliceMode.MONOCHROME);
 					hasLava |= argb == SliceColors.LAVA_BLINK;
+					hasPortal |= argb >>> 24 == SliceColors.PORTAL_MARK >>> 24;
 				}
 				fill(col, row, pixelsPerBlock, argb);
 			}
@@ -178,6 +182,7 @@ final class SliceRenderer {
 		if (image == null) {
 			return;
 		}
+		long now = System.currentTimeMillis();
 
 		for (int y = 0; y < SIZE; y++) {
 			// Lost horizontal sync: some rows slide sideways.
@@ -190,6 +195,8 @@ final class SliceRenderer {
 				int argb = base[y * SIZE + sx];
 				if (argb == SliceColors.LAVA_BLINK) {
 					argb = lavaBright ? SliceColors.LAVA_BRIGHT : SliceColors.LAVA_DARK;
+				} else if (argb >>> 24 == SliceColors.PORTAL_MARK >>> 24) {
+					argb = portalPixel(argb & 0xFFFFFF, now);
 				}
 				if (decay > 0) {
 					argb = decayPixel(argb, decay);
@@ -198,6 +205,16 @@ final class SliceRenderer {
 			}
 		}
 		texture.upload();
+	}
+
+	/**
+	 * A lit portal block: black or white, switching every 150 to 650 ms, the
+	 * speed and phase picked once per block from its random value.
+	 */
+	private static int portalPixel(int seed, long now) {
+		long halfPeriod = 150 + seed % 500;
+		long phase = (seed >> 9) % 1000;
+		return ((now + phase) / halfPeriod) % 2 == 0 ? 0xFFFFFFFF : 0xFF000000;
 	}
 
 	/** Drains color and mixes in snow; at full decay the picture is mostly noise. */
