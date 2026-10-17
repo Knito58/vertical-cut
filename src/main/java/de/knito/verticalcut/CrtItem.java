@@ -15,6 +15,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.BundleContents;
 import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.Level;
 
@@ -70,10 +71,10 @@ public class CrtItem extends Item {
 		crt.set(CrtComponents.MODULES, ItemContainerContents.fromItems(modules));
 	}
 
-	/** Index of the coal pouch (any bundle) among the modules, or -1. */
+	/** Index of the coal pouch (a bundle without an amethyst shard) among the modules, or -1. */
 	public static int pouchIndex(List<ItemStack> modules) {
 		for (int i = 0; i < modules.size(); i++) {
-			if (isPouch(modules.get(i))) {
+			if (isPouch(modules.get(i)) && !isFinder(modules.get(i))) {
 				return i;
 			}
 		}
@@ -102,8 +103,25 @@ public class CrtItem extends Item {
 		return modules.stream().anyMatch(stack -> stack.is(Items.SPYGLASS));
 	}
 
+	/** The ore samples (everything) in the finder bundles among the modules. */
+	public static List<ItemStack> finderSamples(List<ItemStack> modules) {
+		return modules.stream()
+				.filter(CrtItem::isFinder)
+				.flatMap(stack -> stack.getOrDefault(DataComponents.BUNDLE_CONTENTS, BundleContents.EMPTY).itemCopies())
+				.toList();
+	}
+
+	/** A bundle with an amethyst shard in it: the ores in it flash in the picture, nothing in it burns. */
+	public static boolean isFinder(ItemStack stack) {
+		return isPouch(stack) && stack.getOrDefault(DataComponents.BUNDLE_CONTENTS, BundleContents.EMPTY)
+				.itemCopies().anyMatch(item -> item.is(Items.AMETHYST_SHARD));
+	}
+
 	/** Whether the item works as a module, and which kind; null if it doesn't. */
 	public static String moduleKind(ItemStack stack) {
+		if (isFinder(stack)) {
+			return "finder";
+		}
 		if (isPouch(stack)) {
 			return "pouch";
 		}

@@ -1,6 +1,7 @@
 package de.knito.verticalcut.client;
 
 import java.util.Random;
+import java.util.Set;
 
 import com.mojang.blaze3d.platform.NativeImage;
 
@@ -10,6 +11,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 import de.knito.verticalcut.VerticalCut;
@@ -38,6 +40,8 @@ final class SliceRenderer {
 	private static final int REFRESH_TICKS = 20;
 	/** A laggy (crude) CRT only recomputes this often and ignores movement. */
 	private static final int LAG_REFRESH_TICKS = 30;
+	/** Half period of the flashing ores the finder bundle looks for. */
+	private static final long FINDER_BLINK_MILLIS = 250;
 	/** Half period of blinking lava in black and white pictures. */
 	private static final long LAVA_BLINK_MILLIS = 400;
 	/** Recompute when the view direction changed by more than this (degrees). */
@@ -55,6 +59,7 @@ final class SliceRenderer {
 	private int lastPixelsPerBlock;
 	private SliceMode lastMode;
 	private boolean lastDeep;
+	private Set<Block> lastFinder = Set.of();
 	/** Rows of blocks from the top of the shown picture down to the feet; negative = feet above it. */
 	private int lastTop;
 	private int ticksSinceUpdate;
@@ -62,6 +67,8 @@ final class SliceRenderer {
 	private boolean hasLava;
 	private boolean hasPortal;
 	private boolean lavaBright;
+	private boolean hasFinder;
+	private boolean finderBright;
 
 	boolean isReady() {
 		return texture != null;
@@ -99,9 +106,10 @@ final class SliceRenderer {
 	 * @param laggy only refresh every {@link #LAG_REFRESH_TICKS}, even while moving
 	 * @param yaw direction of the cut (degrees, Minecraft yaw), usually the view's
 	 * @param deep show the picture one picture height lower (spyglass)
+	 * @param finder blocks that flash (finder bundle); empty for none
 	 */
 	void tick(Minecraft client, int pixelsPerBlock, SliceMode mode, float decay, boolean laggy, float yaw,
-			boolean deep) {
+			boolean deep, Set<Block> finder) {
 		LocalPlayer player = client.player;
 		ClientLevel level = client.level;
 		if (player == null || level == null) {
@@ -118,7 +126,8 @@ final class SliceRenderer {
 
 		boolean moved = !pos.equals(lastPos);
 		boolean turned = Float.isNaN(lastYaw) || Math.abs(wrapDegrees(yaw - lastYaw)) > TURN_THRESHOLD;
-		boolean modeChanged = pixelsPerBlock != lastPixelsPerBlock || mode != lastMode || deep != lastDeep;
+		boolean modeChanged = pixelsPerBlock != lastPixelsPerBlock || mode != lastMode || deep != lastDeep
+				|| !finder.equals(lastFinder);
 		boolean recompute = laggy
 				? modeChanged || ticksSinceUpdate >= LAG_REFRESH_TICKS
 				: moved || turned || modeChanged || ticksSinceUpdate >= REFRESH_TICKS;
@@ -129,14 +138,17 @@ final class SliceRenderer {
 			lastPixelsPerBlock = pixelsPerBlock;
 			lastMode = mode;
 			lastDeep = deep;
+			lastFinder = finder;
 			ticksSinceUpdate = 0;
-			compute(level, player, yaw, pixelsPerBlock, mode, deep);
+			compute(level, player, yaw, pixelsPerBlock, mode, deep, finder);
 		}
 
 		boolean bright = (System.currentTimeMillis() / LAVA_BLINK_MILLIS) % 2 == 0;
 		// Portal blocks each blink in their own rhythm, so redraw every tick while one is seen.
-		boolean blink = hasLava && bright != lavaBright || hasPortal;
+		boolean flash = (System.currentTimeMillis() / FINDER_BLINK_MILLIS) % 2 == 0;
+		boolean blink = hasLava && bright != lavaBright || hasPortal || hasFinder && flash != finderBright;
 		lavaBright = bright;
+		finderBright = flash;
 
 		// A decaying picture changes every tick (noise), a healthy one only when recomputed.
 		boolean noisy = decay > 0;
@@ -147,9 +159,10 @@ final class SliceRenderer {
 	}
 
 	private void compute(ClientLevel level, LocalPlayer player, float yaw, int pixelsPerBlock, SliceMode mode,
-			boolean deep) {
+			boolean deep, Set<Block> finder) {
 		hasLava = false;
 		hasPortal = false;
+		hasFinder = false;
 		int blocks = SIZE / pixelsPerBlock;
 		int behind = Math.max(1, BEHIND / pixelsPerBlock);
 		int above = (int) (blocks * ABOVE_FRACTION);
@@ -186,6 +199,10 @@ final class SliceRenderer {
 					argb = mode == SliceMode.COLOR
 							? SliceColors.colorOf(level, cursor, state)
 							: SliceColors.monochromeOf(level, cursor, state, mode == SliceMode.MONOCHROME);
+					if (finder.contains(state.getBlock())) {
+						argb = SliceColors.FINDER_BLINK;
+						hasFinder = true;
+					}
 					hasLava |= argb == SliceColors.LAVA_BLINK;
 					hasPortal |= isPortal(argb);
 				}
@@ -224,6 +241,9 @@ final class SliceRenderer {
 				int argb = base[y * SIZE + sx];
 				if (argb == SliceColors.LAVA_BLINK) {
 					argb = lavaBright ? SliceColors.LAVA_BRIGHT : SliceColors.LAVA_DARK;
+				} else if (argb == SliceColors.FINDER_BLINK) {
+					// White and black: stands out by brightness, also for color blind players.
+					argb = finderBright ? 0xFFFFFFFF : 0xFF000000;
 				} else if (isPortal(argb)) {
 					argb = portalPixel(argb, now);
 				}

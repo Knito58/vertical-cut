@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
 
 import com.mojang.blaze3d.platform.InputConstants;
 
@@ -27,6 +28,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.LodestoneTracker;
+import net.minecraft.world.level.block.Block;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -160,6 +162,7 @@ public class VerticalCutClient implements ClientModInitializer {
 			if (crtItem.tier.moduleSlots > 0) {
 				details.add(Component.translatable("verticalcut.tooltip.crt.slots", crtItem.tier.moduleSlots));
 				details.add(Component.translatable("verticalcut.tooltip.crt.pouch"));
+				details.add(Component.translatable("verticalcut.tooltip.crt.finder"));
 				details.add(Component.translatable("verticalcut.tooltip.crt.lightning_rod"));
 				details.add(Component.translatable("verticalcut.tooltip.crt.depth_gauge"));
 				details.add(Component.translatable("verticalcut.tooltip.crt.compass", lockKey.getTranslatedKeyMessage()));
@@ -268,7 +271,10 @@ public class VerticalCutClient implements ClientModInitializer {
 			// A flicker is a short burst of the same snow a dying CRT shows.
 			float pictureDecay = Math.max(decay, EFFECTS.flickerStrength());
 			float yaw = cutYaw != null ? cutYaw : client.player.getYRot();
-			SLICE.tick(client, tier.pixelsPerBlock, mode, pictureDecay, tier.laggy, yaw, deepView);
+			Set<Block> finder = tier.showsOres
+					? SliceColors.finderBlocks(CrtItem.finderSamples(CrtItem.modules(crt)))
+					: Set.of();
+			SLICE.tick(client, tier.pixelsPerBlock, mode, pictureDecay, tier.laggy, yaw, deepView, finder);
 		}
 	}
 
