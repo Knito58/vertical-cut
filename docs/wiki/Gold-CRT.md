@@ -4,6 +4,10 @@ Like the Iron CRT, but it can zoom in.
 
 > *Gold leans closer for tired eyes.*
 
+| Zoomed out: 64×64 blocks | Zoomed in with **B**: 32×32 blocks |
+|---|---|
+| ![The same spot, 64 by 64 blocks](images/iron-crt.png) | ![The same spot zoomed in, 32 by 32 blocks](images/gold-crt-zoomed-in.png) |
+
 ## How to make it
 Smithing table: torch + [Iron CRT](Iron-CRT.md) + [Gold Picture Tube](Picture-Tubes.md).
 
