@@ -3,14 +3,15 @@
 	"id": "verticalcut",
 	"version": "${version}",
 	"name": "Vertical Cut",
-	"description": "Shows a vertical cross-section of the terrain in front of you, like an ultrasound scan of the world.",
+	"description": "A coal-powered Rock Tomograph (CRT) shows a vertical cross-section of the terrain in front of you: caves, ores and, on the Netherite tier, living things. Six tiers from Stone to Netherite, with modules.",
 	"authors": [
 		"Claude",
 		"Konitor"
 	],
 	"contact": {
 		"homepage": "https://github.com/Knito58/vertical-cut",
-		"sources": "https://github.com/Knito58/vertical-cut"
+		"sources": "https://github.com/Knito58/vertical-cut",
+		"issues": "https://github.com/Knito58/vertical-cut/issues"
 	},
 	"license": "MIT",
 	"icon": "assets/verticalcut/icon.png",

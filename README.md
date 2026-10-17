@@ -1,8 +1,8 @@
 # Vertical Cut
 
 A Fabric mod for Minecraft 26.3 (needed on both client and server). It shows a vertical cross-section of the
-terrain in front of you in a corner of the screen, like an ultrasound scan of the world,
-so you can spot ores, caves and structures without digging.
+terrain in front of you in a corner of the screen, drawn by a coal-powered Rock Tomograph (CRT)
+you carry, so you can spot ores, caves and structures without digging.
 
 This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
 ([old forum page](https://www.minecraftforum.net/forums/mapping-and-modding-java-edition/minecraft-mods/1290593-vertical-cut-find-diamonds-iron-and-dungeons)).
