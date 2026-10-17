@@ -59,6 +59,22 @@ public class CrtMenu extends AbstractContainerMenu {
 		return moduleSlots;
 	}
 
+	/**
+	 * Client only: moves the player's inventory down to make room for longer
+	 * text above it (translations can be longer than English). Slot positions
+	 * are fixed once made, so the slots are replaced by moved copies.
+	 */
+	public void moveInventoryDown(int dy) {
+		for (int i = moduleSlots; i < slots.size(); i++) {
+			Slot old = slots.get(i);
+			Slot moved = old instanceof LockedSlot
+					? new LockedSlot(old.container, old.getContainerSlot(), old.x, old.y + dy)
+					: new Slot(old.container, old.getContainerSlot(), old.x, old.y + dy);
+			moved.index = old.index;
+			slots.set(i, moved);
+		}
+	}
+
 	/** Re-reads the modules after the server changed them (the CRT ate from the pouch). */
 	public void reload() {
 		modules.reload();
