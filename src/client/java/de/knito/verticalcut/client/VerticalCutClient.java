@@ -20,6 +20,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.Style;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -62,6 +63,10 @@ public class VerticalCutClient implements ClientModInitializer {
 	private static final int RULER_MINOR_TICK = 2;
 	private static final float RULER_TEXT_SCALE = 0.5f;
 	/** Length of the compass needle in GUI pixels. */
+	/** The view counts as aligned with a fixed cut within this many degrees; it clinks once. */
+	private static final float ALIGNED_DEGREES = 1.5f;
+	/** ... and stays aligned (no new clink) until it is off by more than this. */
+	private static final float UNALIGNED_DEGREES = 3f;
 	private static final int NEEDLE_LENGTH = 6;
 	/** Width at which the Shift details in tooltips wrap. */
 	private static final int TOOLTIP_WIDTH = 200;
@@ -97,8 +102,10 @@ public class VerticalCutClient implements ClientModInitializer {
 	private static boolean compass;
 	/** Direction the cut is fixed to (yaw in degrees), by the lock key or a lodestone; null = follows the view. */
 	private static Float cutYaw;
-	/** Locked by the lock key (snapped to north, east, south or west); null = not locked. */
+	/** Locked by the lock key, in the direction the player looked; null = not locked. */
 	private static Float lockedYaw;
+	/** The view points along the fixed cut (within {@link #ALIGNED_DEGREES}): the needle turns green. */
+	private static boolean aligned;
 	/** Lodestone compass without a lodestone in this dimension: the needle spins. */
 	private static boolean needleSpins;
 	/** The lock key was pressed an odd number of times since the last tick. */
@@ -247,10 +254,11 @@ public class VerticalCutClient implements ClientModInitializer {
 	}
 
 	/**
-	 * Compass module: the lock key fixes the cut to the nearest of north,
-	 * east, south and west, or lets it follow the view again. A lodestone
-	 * compass points the cut at its lodestone instead; without one in this
-	 * dimension the needle spins and the cut follows the view.
+	 * Compass module: the lock key fixes the cut in the direction the player
+	 * looks, or lets it follow the view again. A lodestone compass points the
+	 * cut at its lodestone instead; without one in this dimension the needle
+	 * spins and the cut follows the view. Looking along a fixed cut turns the
+	 * needle green with a clink, to help walk that way.
 	 */
 	private static void tickCompass(Minecraft client, ItemStack stack, boolean lockToggled) {
 		compass = !stack.isEmpty();
@@ -259,6 +267,7 @@ public class VerticalCutClient implements ClientModInitializer {
 			lockedYaw = null;
 		}
 		if (!compass) {
+			aligned = false;
 			return;
 		}
 		Player player = client.player;
@@ -272,29 +281,51 @@ public class VerticalCutClient implements ClientModInitializer {
 			} else {
 				needleSpins = true;
 			}
+			updateAligned(client);
 			return;
 		}
 		if (lockToggled) {
 			if (lockedYaw == null) {
-				lockedYaw = Math.floorMod(Math.round(player.getYRot() / 90f), 4) * 90f;
-				player.sendOverlayMessage(Component.translatable("verticalcut.lock.on",
-						Component.translatable("verticalcut.direction." + direction(lockedYaw))));
+				lockedYaw = player.getYRot();
+				player.sendOverlayMessage(Component.translatable("verticalcut.lock.on", bearing(lockedYaw)));
 			} else {
 				lockedYaw = null;
 				player.sendOverlayMessage(Component.translatable("verticalcut.lock.off"));
 			}
 		}
 		cutYaw = lockedYaw;
+		updateAligned(client);
 	}
 
-	/** Name of a locked direction: yaw 0 looks south, 90 west, 180 north, 270 east. */
-	private static String direction(float yaw) {
-		return switch (Math.floorMod(Math.round(yaw / 90f), 4)) {
-			case 0 -> "south";
-			case 1 -> "west";
-			case 2 -> "north";
-			default -> "east";
-		};
+	/** Clinks once when the view comes to point along the fixed cut. */
+	private static void updateAligned(Minecraft client) {
+		if (cutYaw == null) {
+			aligned = false;
+			return;
+		}
+		float off = Math.abs(wrapDegrees(cutYaw - client.player.getYRot()));
+		if (!aligned && off <= ALIGNED_DEGREES) {
+			aligned = true;
+			CrtEffects.play(client, SoundEvents.AMETHYST_BLOCK_CHIME, 1.6f, 0.6f);
+		} else if (aligned && off > UNALIGNED_DEGREES) {
+			aligned = false;
+		}
+	}
+
+	/** Compass bearing in whole degrees: 0 = north, 90 = east (Minecraft yaw 0 looks south). */
+	private static int bearing(float yaw) {
+		return Math.floorMod(Math.round(yaw) + 180, 360);
+	}
+
+	private static float wrapDegrees(float degrees) {
+		float d = degrees % 360f;
+		if (d >= 180f) {
+			d -= 360f;
+		}
+		if (d < -180f) {
+			d += 360f;
+		}
+		return d;
 	}
 
 	private static boolean hasCoal(Player player) {
@@ -465,8 +496,9 @@ public class VerticalCutClient implements ClientModInitializer {
 
 	/**
 	 * Compass needle at the top of the picture: where the cut points compared
-	 * to the view (straight up = ahead). Its tip is red in color pictures.
-	 * While locked, the direction's letter stands beside it.
+	 * to the view (straight up = ahead). Its tip is red in color pictures;
+	 * all green while the view is aligned with a fixed cut. While locked, the
+	 * locked bearing stands beside it.
 	 */
 	private static void drawNeedle(GuiGraphicsExtractor graphics, Minecraft client, int sx, int sy, int shown) {
 		double angle;
@@ -479,7 +511,8 @@ public class VerticalCutClient implements ClientModInitializer {
 		}
 		int px = sx + shown / 2;
 		int py = sy + NEEDLE_LENGTH + 2;
-		int tip = colorPicture ? 0xFFFF4040 : 0xFFFFFFFF;
+		int body = aligned ? 0xFF40FF40 : 0xFFFFFFFF;
+		int tip = aligned ? body : colorPicture ? 0xFFFF4040 : 0xFFFFFFFF;
 		for (int pass = 0; pass < 2; pass++) {
 			for (int i = 0; i <= NEEDLE_LENGTH; i++) {
 				int x = px + (int) Math.round(Math.sin(angle) * i);
@@ -487,14 +520,13 @@ public class VerticalCutClient implements ClientModInitializer {
 				if (pass == 0) {
 					graphics.fill(x - 1, y - 1, x + 2, y + 2, 0xFF000000);
 				} else {
-					graphics.fill(x, y, x + 1, y + 1, i >= NEEDLE_LENGTH - 1 ? tip : 0xFFFFFFFF);
+					graphics.fill(x, y, x + 1, y + 1, i >= NEEDLE_LENGTH - 1 ? tip : body);
 				}
 			}
 		}
 		if (lockedYaw != null) {
-			String letter = Component.translatable("verticalcut.direction." + direction(lockedYaw) + ".short")
-					.getString();
-			drawSmallText(graphics, client, letter, px + NEEDLE_LENGTH + 3, py - NEEDLE_LENGTH);
+			String label = Component.translatable("verticalcut.lock.bearing", bearing(lockedYaw)).getString();
+			drawSmallText(graphics, client, label, px + NEEDLE_LENGTH + 3, py - NEEDLE_LENGTH);
 		}
 	}
 

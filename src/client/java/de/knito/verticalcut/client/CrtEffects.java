@@ -179,7 +179,7 @@ final class CrtEffects {
 	}
 
 	/** Plays a sound unless CRT sounds are switched off; returns it so it can be stopped early. */
-	private static SoundInstance play(Minecraft client, SoundEvent sound, float pitch, float volume) {
+	static SoundInstance play(Minecraft client, SoundEvent sound, float pitch, float volume) {
 		if (!VerticalCutConfig.get().sounds) {
 			return null;
 		}
