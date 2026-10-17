@@ -17,5 +17,7 @@ jobs:
           set +e +o pipefail
           M=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-common.jar
           C=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-client-only.jar
-          unzip -l $M | grep -i "enderman" | grep class | grep -v '\$' | head
-          cl=$(unzip -l $M | awk '{print $4}' | grep -iE '/EnderMan.class$' | head -1 | sed 's/.class$//; s#/#.#g'); javap -cp "$M" $cl | grep -iE "creepy|boolean is"
+          unzip -l $M | grep -iE "stone_crafting_materials|recipes/decorations/furnace|recipes/tools/stone_pickaxe" 
+          unzip -p $M data/minecraft/advancement/recipes/decorations/furnace.json
+          unzip -p $M data/minecraft/tags/item/stone_crafting_materials.json
+          unzip -p $M data/minecraft/recipe/furnace.json
