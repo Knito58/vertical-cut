@@ -2,7 +2,9 @@
 
 A spyglass in a module slot. It looks one picture deeper.
 
-![The deep picture from Y 17: the plate at the top says 17 with an arrow up, the ruler runs from -7 down to the bottom of the world, the dotted line marks your column](images/spyglass-deep.png)
+| Near (as usual), you at Y 17 | Deep after **J**: from -7 down to the bottom of the world |
+|---|---|
+| ![The near picture with you as the stick figure at Y 17](images/spyglass-near.png) | ![The deep picture: the plate at the top says 17 with an arrow up, the dotted line marks your column](images/spyglass-deep.png) |
 
 ## What it does
 - **J** flips between the near picture (as usual) and the deep one.
