@@ -171,7 +171,7 @@ public class VerticalCutClient implements ClientModInitializer {
 				details.add(Component.translatable("verticalcut.tooltip.crt.compass", lockKey.getTranslatedKeyMessage()));
 				details.add(Component.translatable("verticalcut.tooltip.crt.spyglass", spyglassKey.getTranslatedKeyMessage()));
 			}
-			if (crtItem.tier.zoomedOutPixelsPerBlock > 0) {
+			if (crtItem.tier.zoomedInPixelsPerBlock > 0) {
 				details.add(Component.translatable("verticalcut.tooltip.crt.zoom", zoomKey.getTranslatedKeyMessage()));
 			}
 			if (crtItem.tier == CrtTier.STONE || crtItem.tier == CrtTier.COPPER || crtItem.tier == CrtTier.IRON) {
@@ -256,15 +256,15 @@ public class VerticalCutClient implements ClientModInitializer {
 		}
 		EFFECTS.tickInterference(client, interference, fuel > 0);
 		colorPicture = tier.color;
-		if (zoomToggled && tier.zoomedOutPixelsPerBlock > 0 && fuel > 0) {
-			config.zoomedOut = !config.zoomedOut;
+		if (zoomToggled && tier.zoomedInPixelsPerBlock > 0 && fuel > 0) {
+			config.zoomedIn = !config.zoomedIn;
 			config.save();
 			// Like an old TV changing channels: a moment of snow and a click.
 			EFFECTS.refocus();
 			CrtEffects.play(client, SoundEvents.UI_BUTTON_CLICK.value(), 0.8f + RANDOM.nextFloat() * 0.3f, 0.3f);
 		}
-		int pixelsPerBlock = tier.zoomedOutPixelsPerBlock > 0 && config.zoomedOut
-				? tier.zoomedOutPixelsPerBlock
+		int pixelsPerBlock = tier.zoomedInPixelsPerBlock > 0 && config.zoomedIn
+				? tier.zoomedInPixelsPerBlock
 				: tier.pixelsPerBlock;
 
 		float share = (float) fuel / CrtItem.FUEL_UNITS;

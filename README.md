@@ -34,8 +34,8 @@ This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
   I R I      R = redstone torch
   I I I
   ```
-- **Gold CRT**, the upgrade after Iron: like Iron, but **B** zooms out to 128×128 blocks and
-  back in to 64×64 (with a moment of snow and a click; the step is remembered). Smithing
+- **Gold CRT**, the upgrade after Iron: like Iron, but **B** zooms in to 32×32 blocks and
+  back out to 64×64 (with a moment of snow and a click; the step is remembered). Smithing
   table: torch + Iron CRT + Gold Picture Tube, made like the iron tube from 8 gold ingots
   and a redstone torch.
 - Recipes appear in the recipe book when you pick up cobblestone, a copper, iron or gold ingot, or the

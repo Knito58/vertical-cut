@@ -10,13 +10,13 @@ public enum CrtTier {
 	COPPER("copper_crt", 4, 0, false, true, false, 60, 180, 0.4f, 0.25f, 1),
 	// First color picture, sees twice as far (64x64 blocks), no flicker of its own.
 	IRON("iron_crt", 2, 0, true, true, false, 0, 0, 0f, 0f, 2),
-	// Like iron, but steps back to see more: 128x128 blocks.
-	GOLD("gold_crt", 2, 1, true, true, false, 0, 0, 0f, 0f, 2);
+	// Like iron, but zooms in to see things closer: 32x32 blocks.
+	GOLD("gold_crt", 2, 4, true, true, false, 0, 0, 0f, 0f, 2);
 
 	public final String itemName;
 	public final int pixelsPerBlock;
-	/** Pixels per block when zoomed out with the zoom key; 0 = this tier can't zoom. */
-	public final int zoomedOutPixelsPerBlock;
+	/** Pixels per block when zoomed in with the zoom key; 0 = this tier can't zoom. */
+	public final int zoomedInPixelsPerBlock;
 	public final boolean color;
 	/** Whether ores, spawners and chests stand out. Without, only caves, water and lava show. */
 	public final boolean showsOres;
@@ -31,12 +31,12 @@ public enum CrtTier {
 	/** How many modules (coal pouch, ...) fit into this CRT. */
 	public final int moduleSlots;
 
-	CrtTier(String itemName, int pixelsPerBlock, int zoomedOutPixelsPerBlock, boolean color, boolean showsOres,
+	CrtTier(String itemName, int pixelsPerBlock, int zoomedInPixelsPerBlock, boolean color, boolean showsOres,
 			boolean laggy, int flickerMinSeconds, int flickerMaxSeconds, float buzzChance, float buzzVolume,
 			int moduleSlots) {
 		this.itemName = itemName;
 		this.pixelsPerBlock = pixelsPerBlock;
-		this.zoomedOutPixelsPerBlock = zoomedOutPixelsPerBlock;
+		this.zoomedInPixelsPerBlock = zoomedInPixelsPerBlock;
 		this.color = color;
 		this.showsOres = showsOres;
 		this.laggy = laggy;
