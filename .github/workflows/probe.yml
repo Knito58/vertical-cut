@@ -9,14 +9,8 @@ jobs:
       - name: modrinth
         run: |
           set +e +o pipefail
-          for slug in metal-bundles better-bundle bundle-api bundles-beyond; do
-            echo "===== $slug"
-            v=$(curl -sS -G "https://api.modrinth.com/v2/project/$slug/version" --data-urlencode 'loaders=["fabric"]' --data-urlencode 'game_versions=["26.3"]')
-            echo "$v" | jq -r '.[0] | "\(.version_number) | \(.files[0].filename)"'
-            for id in $(echo "$v" | jq -r '.[0].dependencies[] | select(.dependency_type=="required") | .project_id'); do curl -sS https://api.modrinth.com/v2/project/$id | jq -r '"  required: \(.slug)"'; done
-            mkdir -p x/$slug && curl -sSL -o x/$slug.jar "$(echo "$v" | jq -r '.[0].files[0].url')" && (cd x/$slug && unzip -qo ../$slug.jar)
-            for j in x/$slug/META-INF/jars/*.jar; do [ -f "$j" ] && (cd x/$slug && unzip -qo "../../$j" -x 'META-INF/*' 2>/dev/null); done
-            echo "  classes using BUNDLE_CONTENTS:"; grep -rl --include=*.class BUNDLE_CONTENTS x/$slug | head -8
-            echo "  item ids:"; ls x/$slug/assets/*/models/item 2>/dev/null | grep -i bundle | grep -v _ | head; ls x/$slug/assets/*/models/item 2>/dev/null | grep -iE "^(iron|copper)" | head -4
-            jq -r '.depends' x/$slug/fabric.mod.json
+          for slug in metal-bundles puzzles-lib forge-config-api-port; do
+            curl -sS -G "https://api.modrinth.com/v2/project/$slug/version" --data-urlencode 'loaders=["fabric"]' --data-urlencode 'game_versions=["26.3"]' | jq -r --arg s $slug '.[0] | "\($s) | \(.version_number) | \(.id) | \(.files[0].filename) | \([.dependencies[] | select(.dependency_type=="required") | .project_id] | join(","))"'
           done
+          curl -sS https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/maven-metadata.xml | grep -o "<version>[^<]*26.3[^<]*</version>" | tail -5
+          curl -sS https://maven.fabricmc.net/net/fabricmc/fabric-loader/maven-metadata.xml | grep -o "<latest>[^<]*</latest>"
