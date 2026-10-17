@@ -2,6 +2,8 @@
 
 The only module the mod adds as its own item. It shows Y levels in the picture.
 
+![The ruler on the left edge: your feet at Y 17, marks every 8 blocks](images/depth-gauge.png)
+
 ## Recipe
 ```
 S N        S = stick

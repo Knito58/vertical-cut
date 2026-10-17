@@ -27,6 +27,9 @@ Each one is made from the one before.
 
 ## Modules
 Vanilla items you put into a CRT's module slots (sneak + right-click with the CRT):
+
+![The module screen](images/module-screen.png)
+
 - [Coal Pouch](Coal-Pouch.md): any bundle; the CRT eats from it, and anything a furnace burns.
 - [Finder Bundle](Finder-Bundle.md): a bundle with an amethyst shard; makes chosen ores flash.
 - [Lightning Rod](Lightning-Rod.md): shields against interference.

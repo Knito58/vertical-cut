@@ -2,6 +2,10 @@
 
 Any bundle (modded bundles too) in a module slot, **without an amethyst shard** in it.
 
+![The module screen with a coal pouch and a depth gauge: stored fuel and the pouch's worth below the slots](images/module-screen.png)
+
+The orange bar on the right edge of the picture is the fuel gauge (see the [Depth Gauge](Depth-Gauge.md) picture).
+
 ## What it does
 - The CRT then eats **only from the bundle**, never from your inventory.
 - It eats **anything that burns in a furnace**, worth what it would burn there compared to coal:
