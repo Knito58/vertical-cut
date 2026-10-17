@@ -77,6 +77,11 @@ final class SliceRenderer {
 		return above * lastPixelsPerBlock + lastPixelsPerBlock / 2;
 	}
 
+	/** Texture pixel column where the player marker starts. */
+	int feetPixelColumn() {
+		return Math.max(1, BEHIND / lastPixelsPerBlock) * lastPixelsPerBlock;
+	}
+
 	/** Pixels per block of the shown picture. */
 	int pixelsPerBlock() {
 		return lastPixelsPerBlock;

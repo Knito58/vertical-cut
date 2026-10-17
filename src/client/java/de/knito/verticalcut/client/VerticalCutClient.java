@@ -338,10 +338,11 @@ public class VerticalCutClient implements ClientModInitializer {
 
 	/**
 	 * Depth Gauge: white marks with Y values inside the picture along its
-	 * left edge, next to the player marker, counted from the feet (labelled
-	 * with their own Y) in steps of 8 blocks, so the numbers change with every
-	 * step up or down. The numbers are drawn at half size. When the marks
-	 * would crowd, only every 16 blocks get one.
+	 * left edge, counted from the feet (labelled with their own Y) in steps
+	 * of 8 blocks, so the numbers change with every step up or down. The feet
+	 * mark is a line reaching the player marker; the other marks are 8 blocks
+	 * away from it and never touch it. The numbers are drawn at half size.
+	 * When the marks would crowd, only every 16 blocks get one.
 	 */
 	private static void drawRuler(GuiGraphicsExtractor graphics, Minecraft client, int sx, int sy, int shown) {
 		double scale = (double) shown / SliceRenderer.SIZE;
@@ -352,14 +353,21 @@ public class VerticalCutClient implements ClientModInitializer {
 		double feetPx = sy + SLICE.feetPixelRow() * scale;
 		int first = -(int) Math.floor((feetPx - sy) / (blockPx * step));
 		int last = (int) Math.floor((sy + shown - feetPx) / (blockPx * step));
+		int markerX = sx + (int) Math.round(SLICE.feetPixelColumn() * scale);
 		for (int k = first; k <= last; k++) {
 			int y = (int) Math.round(feetPx + k * step * blockPx);
+			String label = Integer.toString(feetY - k * step);
 			graphics.fill(sx, y, sx + RULER_TICK, y + 1, 0xFFFFFFFF);
+			if (k == 0) {
+				// From behind the number on to the player marker.
+				int labelEnd = sx + RULER_TICK + 2 + Math.round(client.font.width(label) * RULER_TEXT_SCALE);
+				graphics.fill(labelEnd, y, markerX, y + 1, 0xFFFFFFFF);
+			}
 			float textY = Math.clamp(y - textHeight / 2, sy + 1, sy + shown - textHeight);
 			graphics.pose().pushMatrix();
 			graphics.pose().translate(sx + RULER_TICK + 1, textY);
 			graphics.pose().scale(RULER_TEXT_SCALE, RULER_TEXT_SCALE);
-			graphics.text(client.font, Integer.toString(feetY - k * step), 0, 0, 0xFFFFFFFF, true);
+			graphics.text(client.font, label, 0, 0, 0xFFFFFFFF, true);
 			graphics.pose().popMatrix();
 		}
 	}
