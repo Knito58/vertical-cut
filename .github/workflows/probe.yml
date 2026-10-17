@@ -17,8 +17,5 @@ jobs:
           set +e +o pipefail
           M=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-common.jar
           C=$HOME/.gradle/caches/fabric-loom/26.3/minecraft-client-only.jar
-          javap -p -cp "$M:$C" net.minecraft.client.renderer.item.properties.conditional.ConditionalItemModelProperties
-          javap -p -cp "$M:$C" net.minecraft.client.renderer.item.properties.conditional.ItemModelPropertyTest
-          javap -c -p -cp "$M:$C" net.minecraft.client.renderer.item.properties.conditional.ConditionalItemModelProperties | grep -iE "invoke|putstatic|getstatic" | head -40
-          for j in $(find ~/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api -name "*.jar" | grep -v sources); do unzip -l $j | grep -iE "ItemModelPropert|ConditionalItem|ItemModelRegistr" && echo "== $j"; done
-          javap -cp "$M:$C" net.minecraft.util.ExtraCodecs\$LateBoundIdMapper | head -20
+          javap -c -p -cp "$M:$C" net.minecraft.client.Options | grep -E 'ldc.*"key\.|bipush|sipush' | grep -B1 -E 'bipush|sipush' | grep -A1 'ldc' | head -120
+          javap -p -cp "$M:$C" net.minecraft.sounds.SoundEvents | grep -i spyglass
