@@ -23,6 +23,7 @@
 	"verticalcut.tooltip.crt.key": "%s shows or hides the cut.",
 	"verticalcut.tooltip.crt.slots": "Module slots: %s. Sneak + right-click to open.",
 	"verticalcut.tooltip.crt.pouch": "A bundle in a slot is a coal pouch: the CRT then eats only from it, anything a furnace burns.",
+	"verticalcut.tooltip.crt.lightning_rod": "A lightning rod in a slot shields against most interference.",
 	"verticalcut.tooltip.stone_crt.upgrade": "Upgrade on the smithing table with a torch and a Copper Picture Tube.",
 	"verticalcut.tooltip.copper_tube.use": "Turns a Stone CRT into a Copper CRT on the smithing table, with a torch as template.",
 

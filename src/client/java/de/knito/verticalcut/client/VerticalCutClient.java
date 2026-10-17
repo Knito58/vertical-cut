@@ -58,6 +58,9 @@ public class VerticalCutClient implements ClientModInitializer {
 
 	private static final SliceRenderer SLICE = new SliceRenderer();
 	private static final CrtEffects EFFECTS = new CrtEffects();
+	private static final Interference INTERFERENCE = new Interference();
+	/** Share of interference a lightning rod module lets through. */
+	private static final float ROD_LETS_THROUGH = 0.25f;
 	private static final Random RANDOM = new Random();
 
 	private static KeyMapping toggleKey;
@@ -115,6 +118,7 @@ public class VerticalCutClient implements ClientModInitializer {
 			if (crtItem.tier.moduleSlots > 0) {
 				details.add(Component.translatable("verticalcut.tooltip.crt.slots", crtItem.tier.moduleSlots));
 				details.add(Component.translatable("verticalcut.tooltip.crt.pouch"));
+				details.add(Component.translatable("verticalcut.tooltip.crt.lightning_rod"));
 			}
 			if (crtItem.tier == CrtTier.STONE) {
 				details.add(Component.translatable("verticalcut.tooltip.stone_crt.upgrade"));
@@ -161,6 +165,7 @@ public class VerticalCutClient implements ClientModInitializer {
 
 		if (!config.requireDevice) {
 			EFFECTS.reset();
+			INTERFERENCE.reset();
 			showing = config.visible;
 			if (showing) {
 				SLICE.tick(client, config.zoom, SliceMode.COLOR, 0, false);
@@ -171,6 +176,7 @@ public class VerticalCutClient implements ClientModInitializer {
 		ItemStack crt = CrtItem.held(client.player);
 		if (crt.isEmpty() || !config.visible) {
 			EFFECTS.reset();
+			INTERFERENCE.reset();
 			return;
 		}
 
@@ -179,6 +185,11 @@ public class VerticalCutClient implements ClientModInitializer {
 		EFFECTS.tick(client, fuel, pouch != null);
 		CrtTier tier = ((CrtItem) crt.getItem()).tier;
 		EFFECTS.tickFlicker(client, tier, fuel > 0);
+		float interference = INTERFERENCE.tick(client);
+		if (CrtItem.hasLightningRod(CrtItem.modules(crt))) {
+			interference *= ROD_LETS_THROUGH;
+		}
+		EFFECTS.tickInterference(client, interference, fuel > 0);
 		colorPicture = tier.color;
 
 		float share = (float) fuel / CrtItem.FUEL_UNITS;
