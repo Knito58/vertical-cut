@@ -310,7 +310,10 @@ public class VerticalCutClient implements ClientModInitializer {
 			aligned = true;
 			// A random note of a pentatonic scale, so it never sounds the same twice in a row.
 			int note = CHIME_NOTES[RANDOM.nextInt(CHIME_NOTES.length)];
-			CrtEffects.play(client, SoundEvents.AMETHYST_BLOCK_CHIME, (float) Math.pow(2, (note - 12) / 12.0), 0.5f);
+			float pitch = (float) Math.pow(2, (note - 12) / 12.0);
+			// The amethyst chime alone is too quiet; the note block chime carries it.
+			CrtEffects.play(client, SoundEvents.AMETHYST_BLOCK_CHIME, pitch, 1f);
+			CrtEffects.play(client, SoundEvents.NOTE_BLOCK_CHIME.value(), pitch, 0.6f);
 		} else if (aligned && off > UNALIGNED_DEGREES) {
 			aligned = false;
 		}
