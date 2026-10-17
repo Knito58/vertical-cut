@@ -26,6 +26,12 @@ final class SliceColors {
 	static final int LAVA_BLINK = 0x01FF4400;
 	static final int LAVA_BRIGHT = 0xFFFFFFFF;
 	static final int LAVA_DARK = 0xFF505050;
+	/**
+	 * Marker (alpha 2) for lit portal blocks in black and white pictures; the
+	 * low 24 bits are a per-block random value. {@link SliceRenderer} lets
+	 * each such block blink black and white in its own rhythm.
+	 */
+	static final int PORTAL_MARK = 0x02000000;
 	/** Water in black and white pictures: a mid grey, between stone and the bright ores. */
 	static final int WATER = 0xFF8C8C8C;
 
@@ -64,6 +70,9 @@ final class SliceColors {
 	static int monochromeOf(Level level, BlockPos pos, BlockState state, boolean showOres) {
 		if (state.is(Blocks.LAVA)) {
 			return LAVA_BLINK;
+		}
+		if (state.is(Blocks.NETHER_PORTAL) || state.is(Blocks.END_PORTAL) || state.is(Blocks.END_GATEWAY)) {
+			return PORTAL_MARK | (int) (pos.asLong() * 0x9E3779B97F4A7C15L >>> 40);
 		}
 		// Water, and anything waterlogged or growing under water.
 		if (!state.getFluidState().isEmpty()) {
