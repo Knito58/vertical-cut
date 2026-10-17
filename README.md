@@ -61,11 +61,15 @@ This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
   the picture shows where the cut points and turns green and thick with a clink when you face
   that way; the antennas of the CRT in your hand light up as well.
   A lodestone compass points the cut at its lodestone.
+- **Spyglass module**: a spyglass in a module slot. **J** flips the picture between near (as usual)
+  and deep: the deep picture goes on where the near one ends, one full picture lower. You stand
+  above it, a dotted line in your color marks your position. Taking the spyglass out or the CRT
+  dying brings back the near picture.
 - **Depth Gauge module** (3 sticks in a column, 3 copper nuggets beside them): a white ruler
   along the left edge of the picture with the Y level at your feet and every 8 blocks above and below.
 - Hold **Shift** over a CRT or the tube for a short explanation.
 - Stone and Copper CRT show 32×32 blocks.
-- **V** shows or hides the cut, **K** locks its direction (compass module). Those are the only keys bound by default.
+- **V** shows or hides the cut, **K** locks its direction (compass module), **J** looks deeper (spyglass module). Those are the only keys bound by default.
 - Settings (CRT must be in hand, corner, distance from edge, size, opacity, CRT sounds,
   seconds per coal, color of the stick figure that shows you) are in
   **Mod Menu → Vertical Cut → Configure** and are saved in `config/verticalcut.json`.

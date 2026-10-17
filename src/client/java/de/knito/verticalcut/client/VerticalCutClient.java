@@ -50,7 +50,7 @@ import de.knito.verticalcut.client.mixin.ConditionalItemModelPropertiesAccessor;
  * Client entrypoint: key mappings, deciding what the cut may show (depends on
  * the held CRT and its fuel), and the HUD element that draws it.
  *
- * Only V (show/hide) and K (compass lock) are bound by default. Opacity and the settings screen
+ * Only V (show/hide), K (compass lock) and J (spyglass) are bound by default. Opacity and the settings screen
  * have keys without a default binding.
  */
 public class VerticalCutClient implements ClientModInitializer {
@@ -87,6 +87,7 @@ public class VerticalCutClient implements ClientModInitializer {
 	private static KeyMapping opacityKey;
 	private static KeyMapping settingsKey;
 	private static KeyMapping lockKey;
+	private static KeyMapping spyglassKey;
 
 	/** What the HUD should draw this tick, decided in the client tick. */
 	private static boolean showing;
@@ -113,6 +114,10 @@ public class VerticalCutClient implements ClientModInitializer {
 	private static boolean needleSpins;
 	/** The lock key was pressed an odd number of times since the last tick. */
 	private static boolean lockPressed;
+	/** Spyglass module: the picture shows one picture height lower. */
+	private static boolean deepView;
+	/** The spyglass key was pressed an odd number of times since the last tick. */
+	private static boolean spyglassPressed;
 	/** Last scanning state sent to the server; null = send again. */
 	private static ScanStatePayload sentScanState;
 
@@ -123,6 +128,7 @@ public class VerticalCutClient implements ClientModInitializer {
 		settingsKey = register("key.verticalcut.settings", InputConstants.UNKNOWN.getValue());
 		// L opens the advancements in vanilla, so K.
 		lockKey = register("key.verticalcut.lock", InputConstants.KEY_K);
+		spyglassKey = register("key.verticalcut.spyglass", InputConstants.KEY_J);
 
 		ConditionalItemModelPropertiesAccessor.verticalcut$idMapper().put(VerticalCut.id("on_track"), OnTrack.MAP_CODEC);
 		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> sentScanState = null);
@@ -157,6 +163,7 @@ public class VerticalCutClient implements ClientModInitializer {
 				details.add(Component.translatable("verticalcut.tooltip.crt.lightning_rod"));
 				details.add(Component.translatable("verticalcut.tooltip.crt.depth_gauge"));
 				details.add(Component.translatable("verticalcut.tooltip.crt.compass", lockKey.getTranslatedKeyMessage()));
+				details.add(Component.translatable("verticalcut.tooltip.crt.spyglass", spyglassKey.getTranslatedKeyMessage()));
 			}
 			if (crtItem.tier == CrtTier.STONE || crtItem.tier == CrtTier.COPPER) {
 				details.add(Component.translatable(prefix + "upgrade"));
@@ -205,6 +212,8 @@ public class VerticalCutClient implements ClientModInitializer {
 		needleSpins = false;
 		boolean lockToggled = lockPressed;
 		lockPressed = false;
+		boolean spyglassToggled = spyglassPressed;
+		spyglassPressed = false;
 		if (client.player == null) {
 			return;
 		}
@@ -216,6 +225,7 @@ public class VerticalCutClient implements ClientModInitializer {
 			EFFECTS.reset();
 			INTERFERENCE.reset();
 			lockedYaw = null;
+			deepView = false;
 			return;
 		}
 
@@ -227,6 +237,7 @@ public class VerticalCutClient implements ClientModInitializer {
 		float interference = INTERFERENCE.tick(client);
 		depthGauge = CrtItem.hasDepthGauge(CrtItem.modules(crt));
 		tickCompass(client, CrtItem.compass(CrtItem.modules(crt)), lockToggled);
+		tickSpyglass(client, CrtItem.hasSpyglass(CrtItem.modules(crt)), spyglassToggled);
 		if (CrtItem.hasLightningRod(CrtItem.modules(crt))) {
 			interference *= ROD_LETS_THROUGH;
 		}
@@ -248,12 +259,28 @@ public class VerticalCutClient implements ClientModInitializer {
 		}
 		outOfCoal = fuel == 0 && !EFFECTS.dying() && noSpare;
 		lowOnCoal = decay > 0 && noSpare;
+		// A dead CRT wakes up looking near again.
+		if (outOfCoal || EFFECTS.dying()) {
+			deepView = false;
+		}
 		if (showing) {
 			SliceMode mode = tier.color ? SliceMode.COLOR : tier.showsOres ? SliceMode.MONOCHROME : SliceMode.CAVES;
 			// A flicker is a short burst of the same snow a dying CRT shows.
 			float pictureDecay = Math.max(decay, EFFECTS.flickerStrength());
 			float yaw = cutYaw != null ? cutYaw : client.player.getYRot();
-			SLICE.tick(client, tier.pixelsPerBlock, mode, pictureDecay, tier.laggy, yaw);
+			SLICE.tick(client, tier.pixelsPerBlock, mode, pictureDecay, tier.laggy, yaw, deepView);
+		}
+	}
+
+	/** Spyglass module: its key flips between the normal picture and the one below it. */
+	private static void tickSpyglass(Minecraft client, boolean spyglass, boolean toggled) {
+		if (!spyglass) {
+			deepView = false;
+			return;
+		}
+		if (toggled) {
+			deepView = !deepView;
+			CrtEffects.play(client, deepView ? SoundEvents.SPYGLASS_USE : SoundEvents.SPYGLASS_STOP_USING, 1f, 1f);
 		}
 	}
 
@@ -368,6 +395,9 @@ public class VerticalCutClient implements ClientModInitializer {
 		while (lockKey.consumeClick()) {
 			lockPressed = !lockPressed;
 		}
+		while (spyglassKey.consumeClick()) {
+			spyglassPressed = !spyglassPressed;
+		}
 		while (settingsKey.consumeClick()) {
 			client.gui.setScreen(new VerticalCutConfigScreen(null));
 		}
@@ -435,8 +465,10 @@ public class VerticalCutClient implements ClientModInitializer {
 		int tex = SliceRenderer.SIZE;
 		graphics.blit(RenderPipelines.GUI_TEXTURED, SLICE.textureId, sx, sy, 0, 0, shown, shown, tex, tex, tex, tex,
 				(pictureAlpha << 24) | 0xFFFFFF);
-		int playerLeft = drawPlayer(graphics, client, sx, sy, shown,
-				colorPicture ? config.figureColor.argb : 0xFFFFFFFF);
+		int figureColor = colorPicture ? config.figureColor.argb : 0xFFFFFFFF;
+		int playerLeft = SLICE.deep()
+				? drawPlayerAbove(graphics, client, sx, sy, shown, figureColor)
+				: drawPlayer(graphics, client, sx, sy, shown, figureColor);
 		if (depthGauge) {
 			drawRuler(graphics, client, sx, sy, shown, playerLeft);
 		}
@@ -461,6 +493,8 @@ public class VerticalCutClient implements ClientModInitializer {
 	 * mark is a line reaching the stick figure; the other marks are 8 blocks
 	 * away from it and never touch it. The numbers are drawn at half size.
 	 * When the marks would crowd, only every 16 blocks get one.
+	 * In the deep picture (spyglass) the feet are above it: their number
+	 * stays at the top of the ruler with an arrow pointing up.
 	 */
 	private static void drawRuler(GuiGraphicsExtractor graphics, Minecraft client, int sx, int sy, int shown,
 			int lineEnd) {
@@ -472,10 +506,14 @@ public class VerticalCutClient implements ClientModInitializer {
 		float textHeight = client.font.lineHeight * textScale;
 		int step = blockPx * RULER_STEP >= textHeight + 2 ? RULER_STEP : 2 * RULER_STEP;
 		int feetY = SLICE.feetY();
-		double feetPx = sy + SLICE.feetPixelRow() * scale;
+		boolean deep = SLICE.deep();
+		// The deep picture lies one picture height below the normal one.
+		double feetPx = sy + SLICE.feetPixelRow() * scale - (deep ? shown : 0);
 		double stepPx = step * blockPx;
-		int first = -(int) Math.floor((feetPx - sy) / stepPx);
+		int first = (int) Math.ceil((sy - feetPx) / stepPx);
 		int last = (int) Math.floor((sy + shown - feetPx) / stepPx);
+		// Below the feet plate at the top of a deep picture.
+		float freeTop = deep ? sy + textHeight + 2 : sy;
 
 		// Short unnumbered marks halfway between the numbered ones.
 		for (int k = first - 1; k <= last; k++) {
@@ -495,6 +533,9 @@ public class VerticalCutClient implements ClientModInitializer {
 				graphics.fill(labelEnd, y, lineEnd, y + 1, 0xFFFFFFFF);
 			}
 			float textY = Math.clamp(y - textHeight / 2, sy + 1, sy + shown - textHeight);
+			if (textY < freeTop) {
+				continue;
+			}
 			textY = Math.round(textY * guiScale) / guiScale;
 			graphics.pose().pushMatrix();
 			graphics.pose().translate(sx + RULER_TICK + 1, textY);
@@ -506,6 +547,40 @@ public class VerticalCutClient implements ClientModInitializer {
 			graphics.text(client.font, label, 0, 0, 0xFFFFFFFF, true);
 			graphics.pose().popMatrix();
 		}
+		if (deep) {
+			drawFeetAbove(graphics, client, sx + RULER_TICK + 1, sy + 1, textScale, guiScale, Integer.toString(feetY));
+		}
+	}
+
+	/** Up arrow in font pixels, drawn after the feet number in the deep picture. */
+	private static final String[] UP_ARROW = {
+			"..#..",
+			".###.",
+			"#.#.#",
+			"..#..",
+			"..#..",
+			"..#..",
+			"..#..",
+	};
+
+	/** The feet number on its black plate with an arrow up: the feet lie above the picture. */
+	private static void drawFeetAbove(GuiGraphicsExtractor graphics, Minecraft client, float x, float y,
+			float textScale, float guiScale, String label) {
+		int width = client.font.width(label);
+		int arrowLeft = width + 1;
+		graphics.pose().pushMatrix();
+		graphics.pose().translate(Math.round(x * guiScale) / guiScale, Math.round(y * guiScale) / guiScale);
+		graphics.pose().scale(textScale, textScale);
+		graphics.fill(-1, -1, arrowLeft + UP_ARROW[0].length() + 1, client.font.lineHeight - 1, 0xFF000000);
+		graphics.text(client.font, label, 0, 0, 0xFFFFFFFF, true);
+		for (int row = 0; row < UP_ARROW.length; row++) {
+			for (int col = 0; col < UP_ARROW[row].length(); col++) {
+				if (UP_ARROW[row].charAt(col) == '#') {
+					graphics.fill(arrowLeft + col, row, arrowLeft + col + 1, row + 1, 0xFFFFFFFF);
+				}
+			}
+		}
+		graphics.pose().popMatrix();
 	}
 
 	/**
@@ -626,6 +701,31 @@ public class VerticalCutClient implements ClientModInitializer {
 		}
 		graphics.pose().popMatrix();
 		return (int) Math.floor(left / guiScale);
+	}
+
+	/**
+	 * In the deep picture the player stands above it: a dotted line in the
+	 * figure color runs the full height at the player's column. Dots and gaps
+	 * are whole screen pixels, so it stays sharp.
+	 *
+	 * @return the GUI x of the line's left edge
+	 */
+	private static int drawPlayerAbove(GuiGraphicsExtractor graphics, Minecraft client, int sx, int sy, int shown,
+			int argb) {
+		float guiScale = (float) client.getWindow().getGuiScale();
+		double scale = (double) shown / SliceRenderer.SIZE * guiScale;
+		int ppb = SLICE.pixelsPerBlock();
+		int x = (int) Math.floor(sx * guiScale + (SLICE.feetPixelColumn() + ppb / 2.0) * scale);
+		int dot = Math.max(1, Math.round(guiScale / 2));
+		int top = Math.round(sy * guiScale);
+		int bottom = Math.round((sy + shown) * guiScale);
+		graphics.pose().pushMatrix();
+		graphics.pose().scale(1 / guiScale, 1 / guiScale);
+		for (int y = top; y < bottom; y += 2 * dot) {
+			graphics.fill(x, y, x + dot, Math.min(y + dot, bottom), argb);
+		}
+		graphics.pose().popMatrix();
+		return (int) Math.floor(x / guiScale);
 	}
 
 	/**

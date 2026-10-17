@@ -98,6 +98,10 @@ public class CrtItem extends Item {
 		return modules.stream().filter(stack -> stack.is(Items.COMPASS)).findFirst().orElse(ItemStack.EMPTY);
 	}
 
+	public static boolean hasSpyglass(List<ItemStack> modules) {
+		return modules.stream().anyMatch(stack -> stack.is(Items.SPYGLASS));
+	}
+
 	/** Whether the item works as a module, and which kind; null if it doesn't. */
 	public static String moduleKind(ItemStack stack) {
 		if (isPouch(stack)) {
@@ -111,6 +115,9 @@ public class CrtItem extends Item {
 		}
 		if (stack.is(Items.COMPASS)) {
 			return "compass";
+		}
+		if (stack.is(Items.SPYGLASS)) {
+			return "spyglass";
 		}
 		return null;
 	}
