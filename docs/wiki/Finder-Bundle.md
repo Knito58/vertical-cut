@@ -21,6 +21,8 @@ flash: chests, barrels, shulker boxes, hoppers, furnaces and modded containers.
 Each found block flashes in four steps: white, its own color, black, its own color. With
 several samples you can still tell which ore is which.
 
+![Iron ore caught in the white step of the flash (the two white squares on the left)](images/finder-flash.png)
+
 ## Notes
 - Nothing in a finder bundle is ever burned, coal included.
 - It works from the [Copper CRT](Copper-CRT.md) on; the Stone CRT has no module slots.
