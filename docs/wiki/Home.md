@@ -1,5 +1,7 @@
 # Vertical Cut Wiki
 
+![Vertical Cut: the cut in the corner, the CRT in hand](images/hero.png)
+
 Vertical Cut is a Fabric mod for Minecraft 26.3. A device you carry, the **CRT**
 (Coal-powered Rock Tomograph), draws a vertical cross-section of the ground in front of you in a
 corner of the screen. You see caves, water, lava and, with the better CRTs, ores and living
