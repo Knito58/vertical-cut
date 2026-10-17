@@ -61,7 +61,9 @@ This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
   raw ore, ingot, a single nugget, gem, dust or block (coal, iron, copper, gold, redstone, lapis,
   diamond, emerald, quartz, netherite scrap for ancient debris; deepslate and nether variants
   included). Modded ores work too when the mod uses the common `c:` tags (an item in
-  `c:ingots/tin` finds the blocks in `c:ores/tin`). Nothing in a finder bundle is ever burned,
+  `c:ingots/tin` finds the blocks in `c:ores/tin`). A chest as sample makes every block with an
+  inventory flash (chests, barrels, shulker boxes, hoppers, furnaces, and modded ones that work
+  like vanilla chests). Nothing in a finder bundle is ever burned,
   coal included. A shard in your coal pouch turns it into a finder bundle, and it stops
   feeding the CRT.
 - **Interference**: lit portals (nether portal, end portal, end gateway; not the frames) within

@@ -7,13 +7,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.Container;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -25,9 +28,13 @@ import net.minecraft.world.level.block.state.BlockState;
  * mods use connect a material to its ores: an item tagged c:ingots/tin (or
  * nuggets, raw_materials, gems, dusts, ores, storage_blocks) looks for the
  * blocks tagged c:ores/tin.
+ *
+ * A chest as sample (any chest, modded ones in c:chests too) looks for every
+ * block with an inventory: chests, barrels, hoppers, furnaces, ...
  */
-record Finder(Set<Block> blocks, Set<TagKey<Block>> oreTags) {
-	static final Finder NONE = new Finder(Set.of(), Set.of());
+record Finder(Set<Block> blocks, Set<TagKey<Block>> oreTags, boolean containers) {
+	static final Finder NONE = new Finder(Set.of(), Set.of(), false);
+	private static final TagKey<Item> CHESTS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "chests"));
 
 	/** Kinds of "c" item tags that name a material, as in c:ingots/iron. */
 	private static final Set<String> MATERIAL_TAGS = Set.of(
@@ -67,7 +74,9 @@ record Finder(Set<Block> blocks, Set<TagKey<Block>> oreTags) {
 		}
 		Set<Block> blocks = new HashSet<>();
 		Set<TagKey<Block>> oreTags = new HashSet<>();
+		boolean containers = false;
 		for (ItemStack sample : samples) {
+			containers |= sample.is(Items.CHEST) || sample.is(Items.TRAPPED_CHEST) || sample.is(CHESTS);
 			blocks.addAll(SAMPLES.getOrDefault(sample.getItem(), List.of()));
 			BuiltInRegistries.ITEM.wrapAsHolder(sample.getItem()).tags().forEach(tag -> {
 				Identifier id = tag.location();
@@ -77,14 +86,17 @@ record Finder(Set<Block> blocks, Set<TagKey<Block>> oreTags) {
 				}
 			});
 		}
-		return new Finder(Set.copyOf(blocks), Set.copyOf(oreTags));
+		return new Finder(Set.copyOf(blocks), Set.copyOf(oreTags), containers);
 	}
 
 	boolean isEmpty() {
-		return blocks.isEmpty() && oreTags.isEmpty();
+		return blocks.isEmpty() && oreTags.isEmpty() && !containers;
 	}
 
-	boolean matches(BlockState state) {
+	boolean matches(Level level, BlockPos pos, BlockState state) {
+		if (containers && state.hasBlockEntity() && level.getBlockEntity(pos) instanceof Container) {
+			return true;
+		}
 		if (blocks.contains(state.getBlock())) {
 			return true;
 		}
