@@ -2,6 +2,8 @@
 
 The first upgrade: now you see ores.
 
+![The Copper CRT: ores show as white dots in the black and white picture](images/copper-crt.png)
+
 ## How to make it
 Smithing table: torch (template) + [Stone CRT](Stone-CRT.md) + [Copper Picture Tube](Picture-Tubes.md).
 The fuel in the Stone CRT carries over.
