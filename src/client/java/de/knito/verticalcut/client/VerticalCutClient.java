@@ -53,7 +53,8 @@ public class VerticalCutClient implements ClientModInitializer {
 	private static final float DECAY_START = 0.1f;
 	/** Blocks between two marks of the Depth Gauge ruler. */
 	private static final int RULER_STEP = 8;
-	private static final int RULER_TICK = 3;
+	private static final int RULER_TICK = 4;
+	private static final int RULER_MINOR_TICK = 2;
 	private static final float RULER_TEXT_SCALE = 0.5f;
 	/** Width at which the Shift details in tooltips wrap. */
 	private static final int TOOLTIP_WIDTH = 200;
@@ -347,26 +348,40 @@ public class VerticalCutClient implements ClientModInitializer {
 	private static void drawRuler(GuiGraphicsExtractor graphics, Minecraft client, int sx, int sy, int shown) {
 		double scale = (double) shown / SliceRenderer.SIZE;
 		double blockPx = SLICE.pixelsPerBlock() * scale;
-		float textHeight = client.font.lineHeight * RULER_TEXT_SCALE;
+		// About half size, but each font pixel a whole number of screen pixels, so it stays sharp.
+		float guiScale = (float) client.getWindow().getGuiScale();
+		float textScale = Math.max(1, Math.round(guiScale * RULER_TEXT_SCALE)) / guiScale;
+		float textHeight = client.font.lineHeight * textScale;
 		int step = blockPx * RULER_STEP >= textHeight + 2 ? RULER_STEP : 2 * RULER_STEP;
 		int feetY = SLICE.feetY();
 		double feetPx = sy + SLICE.feetPixelRow() * scale;
-		int first = -(int) Math.floor((feetPx - sy) / (blockPx * step));
-		int last = (int) Math.floor((sy + shown - feetPx) / (blockPx * step));
+		double stepPx = step * blockPx;
+		int first = -(int) Math.floor((feetPx - sy) / stepPx);
+		int last = (int) Math.floor((sy + shown - feetPx) / stepPx);
 		int markerX = sx + (int) Math.round(SLICE.feetPixelColumn() * scale);
+
+		// Short unnumbered marks halfway between the numbered ones.
+		for (int k = first - 1; k <= last; k++) {
+			int y = (int) Math.round(feetPx + (k + 0.5) * stepPx);
+			if (y >= sy && y < sy + shown) {
+				graphics.fill(sx, y, sx + RULER_MINOR_TICK, y + 1, 0xFFFFFFFF);
+			}
+		}
+
 		for (int k = first; k <= last; k++) {
-			int y = (int) Math.round(feetPx + k * step * blockPx);
+			int y = (int) Math.round(feetPx + k * stepPx);
 			String label = Integer.toString(feetY - k * step);
 			graphics.fill(sx, y, sx + RULER_TICK, y + 1, 0xFFFFFFFF);
-			int labelEnd = sx + RULER_TICK + 2 + Math.round(client.font.width(label) * RULER_TEXT_SCALE);
+			int labelEnd = sx + RULER_TICK + 2 + Math.round(client.font.width(label) * textScale);
 			if (k == 0 && labelEnd < markerX) {
 				// From behind the number on to the player marker.
 				graphics.fill(labelEnd, y, markerX, y + 1, 0xFFFFFFFF);
 			}
 			float textY = Math.clamp(y - textHeight / 2, sy + 1, sy + shown - textHeight);
+			textY = Math.round(textY * guiScale) / guiScale;
 			graphics.pose().pushMatrix();
 			graphics.pose().translate(sx + RULER_TICK + 1, textY);
-			graphics.pose().scale(RULER_TEXT_SCALE, RULER_TEXT_SCALE);
+			graphics.pose().scale(textScale, textScale);
 			graphics.text(client.font, label, 0, 0, 0xFFFFFFFF, true);
 			graphics.pose().popMatrix();
 		}
