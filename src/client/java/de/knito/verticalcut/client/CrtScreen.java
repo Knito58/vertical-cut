@@ -46,8 +46,8 @@ public class CrtScreen extends AbstractContainerScreen<CrtMenu> {
 
 	private CrtScreen(CrtMenu menu, Inventory inventory, Component title, int extra) {
 		super(menu, inventory, title, WIDTH, BASE_HEIGHT + extra);
+		// The "Inventory" label already follows the height (imageHeight - 94).
 		menu.moveInventoryDown(extra);
-		inventoryLabelY += extra;
 	}
 
 	/** Room needed beyond the vanilla height, for the longest the text can get. */
