@@ -163,9 +163,23 @@ final class SliceColors {
 
 	/**
 	 * Average color of the block's particle texture, read once from the
-	 * resource packs. -1 when there is no usable texture.
+	 * resource packs. When that texture is empty or missing, the block's other
+	 * states are tried: a formed Colossal Chest wall has an invisible model
+	 * (the whole chest is drawn in one piece), but its unformed state shows
+	 * the material. -1 when no state has a usable texture.
 	 */
 	private static int textureColorOf(BlockState state) {
+		int rgb = spriteColorOf(state);
+		for (BlockState other : state.getBlock().getStateDefinition().getPossibleStates()) {
+			if (rgb >= 0) {
+				break;
+			}
+			rgb = spriteColorOf(other);
+		}
+		return rgb;
+	}
+
+	private static int spriteColorOf(BlockState state) {
 		Minecraft minecraft = Minecraft.getInstance();
 		Identifier sprite = minecraft.getModelManager().getBlockStateModelSet()
 				.getParticleMaterial(state).sprite().contents().name();
