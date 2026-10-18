@@ -13,6 +13,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BeaconBeamBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -139,6 +140,9 @@ final class SliceColors {
 		int rgb;
 		if (mapColor != MapColor.NONE) {
 			rgb = mapColor.col;
+		} else if (state.getBlock() instanceof BeaconBeamBlock dyed) {
+			// Stained glass panes have no map color of their own; use the matching stained glass.
+			rgb = dyed.getColor().getMapColor().col;
 		} else if (!BuiltInRegistries.BLOCK.getKey(state.getBlock()).getNamespace().equals("minecraft")
 				&& !state.getCollisionShape(level, pos).isEmpty()) {
 			// Modded blocks you can't walk through but that forgot their map color

@@ -2,6 +2,7 @@
 
 ## 1.0.1 (not released yet)
 
+- Stained glass panes were invisible in the cut; they now show in their glass color.
 - Modded blocks without a map color, like the walls of Colossal Chests, were invisible in the cut.
   Blocks you can't walk through now show in the color of their texture.
 
