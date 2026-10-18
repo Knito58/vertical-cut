@@ -77,7 +77,7 @@ public class CrtScreen extends AbstractContainerScreen<CrtMenu> {
 		}
 
 		// The client's copy of the CRT is replaced whenever the server syncs it.
-		ItemStack crt = CrtItem.held(minecraft.player);
+		ItemStack crt = menu.crtSlot() < 0 ? ItemStack.EMPTY : minecraft.player.getInventory().getItem(menu.crtSlot());
 		Integer pouch = crt.get(CrtComponents.POUCH_FUEL);
 		int textY = y + TEXT_Y;
 		textY = drawWrapped(graphics, storedLine(coals(CrtItem.fuel(crt))), x + TEXT_X, textY);

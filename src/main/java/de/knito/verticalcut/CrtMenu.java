@@ -55,6 +55,11 @@ public class CrtMenu extends AbstractContainerMenu {
 		return index == crtSlot ? new LockedSlot(inventory, index, x, y) : new Slot(inventory, index, x, y);
 	}
 
+	/** Inventory slot of the CRT, -1 if there is none. */
+	public int crtSlot() {
+		return crtSlot;
+	}
+
 	public int moduleSlots() {
 		return moduleSlots;
 	}
