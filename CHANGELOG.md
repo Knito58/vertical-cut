@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.1 (not released yet)
+
+- Modded blocks without a map color, like the walls of Colossal Chests, were invisible in the cut.
+  Blocks you can't walk through now show in the color of their texture.
+
 ## 1.0.0 (2026-10-17)
 
 First release of the rewrite for Minecraft 26.3 (Fabric). Needed on client and server.

@@ -1,9 +1,17 @@
 package de.knito.verticalcut.client;
 
+import java.io.InputStream;
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.Optional;
 
+import com.mojang.blaze3d.platform.NativeImage;
+
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -45,6 +53,8 @@ final class SliceColors {
 	static final int WATER = 0xFF8C8C8C;
 
 	private static final Map<Block, Integer> HIGHLIGHTS = new IdentityHashMap<>();
+	/** Average texture colors of modded blocks without a map color, see {@link #textureColorOf}. */
+	private static final Map<BlockState, Integer> TEXTURE_COLORS = new IdentityHashMap<>();
 
 	static {
 		put(0xFF000000, Blocks.COAL_ORE, Blocks.DEEPSLATE_COAL_ORE);
@@ -126,14 +136,62 @@ final class SliceColors {
 		}
 
 		MapColor mapColor = state.getMapColor(level, pos);
-		if (mapColor == MapColor.NONE) {
+		int rgb;
+		if (mapColor != MapColor.NONE) {
+			rgb = mapColor.col;
+		} else if (!BuiltInRegistries.BLOCK.getKey(state.getBlock()).getNamespace().equals("minecraft")
+				&& !state.getCollisionShape(level, pos).isEmpty()) {
+			// Modded blocks you can't walk through but that forgot their map color
+			// (Colossal Chests walls, for example): use their texture's color.
+			rgb = TEXTURE_COLORS.computeIfAbsent(state, SliceColors::textureColorOf);
+			if (rgb < 0) {
+				return AIR;
+			}
+		} else {
 			return AIR;
 		}
 		// Darken ordinary blocks a bit so the highlights stand out.
-		int rgb = mapColor.col;
 		int r = ((rgb >> 16) & 0xFF) * 3 / 4;
 		int g = ((rgb >> 8) & 0xFF) * 3 / 4;
 		int b = (rgb & 0xFF) * 3 / 4;
 		return 0xFF000000 | (r << 16) | (g << 8) | b;
+	}
+
+	/**
+	 * Average color of the block's particle texture, read once from the
+	 * resource packs. -1 when there is no usable texture.
+	 */
+	private static int textureColorOf(BlockState state) {
+		Minecraft minecraft = Minecraft.getInstance();
+		Identifier sprite = minecraft.getModelManager().getBlockStateModelSet()
+				.getParticleMaterial(state).sprite().contents().name();
+		Identifier file = sprite.withPath(path -> "textures/" + path + ".png");
+		Optional<Resource> resource = minecraft.getResourceManager().getResource(file);
+		if (resource.isEmpty()) {
+			return -1;
+		}
+		try (InputStream in = resource.get().open(); NativeImage image = NativeImage.read(in)) {
+			long r = 0, g = 0, b = 0, count = 0;
+			// Only the first frame of animated textures.
+			int size = Math.min(image.getWidth(), image.getHeight());
+			for (int y = 0; y < size; y++) {
+				for (int x = 0; x < size; x++) {
+					int argb = image.getPixel(x, y);
+					if ((argb >>> 24) < 128) {
+						continue;
+					}
+					r += (argb >> 16) & 0xFF;
+					g += (argb >> 8) & 0xFF;
+					b += argb & 0xFF;
+					count++;
+				}
+			}
+			if (count == 0) {
+				return -1;
+			}
+			return (int) (r / count) << 16 | (int) (g / count) << 8 | (int) (b / count);
+		} catch (Exception e) {
+			return -1;
+		}
 	}
 }
