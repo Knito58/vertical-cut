@@ -49,6 +49,7 @@ tier and shows how far you have come.
 | B | Zoom (Gold, Diamond, Netherite CRT) |
 | K | Lock the direction ([Compass](Compass.md) module) |
 | J | Look deeper ([Spyglass](Spyglass.md) module) |
+| G | Open the module slots of the CRT that draws the cut, wherever it is in your inventory |
 
 Opacity and the settings screen have keys too, but they are unbound. Bind them in
 Options → Controls → Key Binds → Vertical Cut.

@@ -40,6 +40,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import de.knito.verticalcut.CrtComponents;
 import de.knito.verticalcut.CrtItem;
 import de.knito.verticalcut.CrtTier;
+import de.knito.verticalcut.OpenModulesPayload;
 import de.knito.verticalcut.ScanStatePayload;
 import de.knito.verticalcut.VerticalCut;
 import de.knito.verticalcut.VerticalCutConfig;
@@ -90,6 +91,7 @@ public class VerticalCutClient implements ClientModInitializer {
 	private static KeyMapping lockKey;
 	private static KeyMapping spyglassKey;
 	private static KeyMapping zoomKey;
+	private static KeyMapping modulesKey;
 
 	/** What the HUD should draw this tick, decided in the client tick. */
 	private static boolean showing;
@@ -135,6 +137,7 @@ public class VerticalCutClient implements ClientModInitializer {
 		spyglassKey = register("key.verticalcut.spyglass", InputConstants.KEY_J);
 		// B was the zoom key of the old mod.
 		zoomKey = register("key.verticalcut.zoom", InputConstants.KEY_B);
+		modulesKey = register("key.verticalcut.modules", InputConstants.KEY_G);
 
 		ConditionalItemModelPropertiesAccessor.verticalcut$idMapper().put(VerticalCut.id("on_track"), OnTrack.MAP_CODEC);
 		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> sentScanState = null);
@@ -432,6 +435,13 @@ public class VerticalCutClient implements ClientModInitializer {
 		}
 		while (settingsKey.consumeClick()) {
 			client.gui.setScreen(new VerticalCutConfigScreen(null));
+		}
+		while (modulesKey.consumeClick()) {
+			// The server opens the screen of the CRT that draws the cut.
+			if (client.player != null && !CrtItem.active(client.player, config.crtInHand).isEmpty()
+					&& ClientPlayNetworking.canSend(OpenModulesPayload.TYPE)) {
+				ClientPlayNetworking.send(OpenModulesPayload.INSTANCE);
+			}
 		}
 	}
 

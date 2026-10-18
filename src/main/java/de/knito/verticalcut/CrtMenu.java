@@ -4,7 +4,6 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -13,7 +12,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * The module slots of the CRT in the player's hand, plus the player's
+ * The module slots of the player's active CRT (in hand, else anywhere in the inventory), plus the player's
  * inventory. The CRT itself can't be moved while its slots are open.
  */
 public class CrtMenu extends AbstractContainerMenu {
@@ -23,22 +22,20 @@ public class CrtMenu extends AbstractContainerMenu {
 	private static final int HOTBAR_Y = 142;
 
 	public final ItemStack crt;
-	private final InteractionHand hand;
+	/** Inventory slot of the CRT, -1 if there is none; it can't be moved while the screen is open. */
+	private final int crtSlot;
 	private final ModuleContainer modules;
 	private final int moduleSlots;
-	/** Hotbar index of the CRT when it's in the main hand, else -1. */
-	private final int lockedHotbarSlot;
 
 	public CrtMenu(int containerId, Inventory inventory) {
 		super(VerticalCutMod.CRT_MENU, containerId);
 		Player player = inventory.player;
-		InteractionHand heldHand = CrtItem.heldHand(player);
-		this.hand = heldHand == null ? InteractionHand.MAIN_HAND : heldHand;
-		this.crt = heldHand == null ? ItemStack.EMPTY : player.getItemInHand(hand);
+		// Server and client both pick the CRT this way, so they agree on it.
+		this.crtSlot = CrtItem.activeSlot(player, false);
+		this.crt = crtSlot < 0 ? ItemStack.EMPTY : inventory.getItem(crtSlot);
 		this.moduleSlots = crt.getItem() instanceof CrtItem item ? item.tier.moduleSlots : 0;
 		this.modules = new ModuleContainer(crt, moduleSlots,
 				player instanceof ServerPlayer serverPlayer ? serverPlayer.level() : null);
-		this.lockedHotbarSlot = hand == InteractionHand.MAIN_HAND ? inventory.getSelectedSlot() : -1;
 
 		int startX = 89 - moduleSlots * SLOT_SIZE / 2;
 		for (int i = 0; i < moduleSlots; i++) {
@@ -46,13 +43,16 @@ public class CrtMenu extends AbstractContainerMenu {
 		}
 		for (int row = 0; row < 3; row++) {
 			for (int col = 0; col < 9; col++) {
-				addSlot(new Slot(inventory, 9 + row * 9 + col, INVENTORY_X + col * SLOT_SIZE, INVENTORY_Y + row * SLOT_SIZE));
+				addSlot(inventorySlot(inventory, 9 + row * 9 + col, INVENTORY_X + col * SLOT_SIZE, INVENTORY_Y + row * SLOT_SIZE));
 			}
 		}
 		for (int col = 0; col < 9; col++) {
-			int x = INVENTORY_X + col * SLOT_SIZE;
-			addSlot(col == lockedHotbarSlot ? new LockedSlot(inventory, col, x, HOTBAR_Y) : new Slot(inventory, col, x, HOTBAR_Y));
+			addSlot(inventorySlot(inventory, col, INVENTORY_X + col * SLOT_SIZE, HOTBAR_Y));
 		}
+	}
+
+	private Slot inventorySlot(Inventory inventory, int index, int x, int y) {
+		return index == crtSlot ? new LockedSlot(inventory, index, x, y) : new Slot(inventory, index, x, y);
 	}
 
 	public int moduleSlots() {
@@ -83,9 +83,8 @@ public class CrtMenu extends AbstractContainerMenu {
 
 	@Override
 	public void clicked(int slotId, int button, ContainerInput input, Player player) {
-		// Number keys and F would swap the CRT itself out of the hand.
-		if (input == ContainerInput.SWAP
-				&& (button == lockedHotbarSlot || hand == InteractionHand.OFF_HAND && button == Inventory.SLOT_OFFHAND)) {
+		// Number keys and F would swap the CRT itself out of its slot.
+		if (input == ContainerInput.SWAP && button == crtSlot) {
 			return;
 		}
 		super.clicked(slotId, button, input, player);
@@ -116,7 +115,7 @@ public class CrtMenu extends AbstractContainerMenu {
 
 	@Override
 	public boolean stillValid(Player player) {
-		return !crt.isEmpty() && player.getItemInHand(hand) == crt;
+		return !crt.isEmpty() && player.getInventory().getItem(crtSlot) == crt;
 	}
 
 	@Override
@@ -151,7 +150,7 @@ public class CrtMenu extends AbstractContainerMenu {
 		}
 	}
 
-	/** The hotbar slot holding the open CRT: can't be taken or replaced. */
+	/** The slot holding the open CRT: can't be taken or replaced. */
 	private static class LockedSlot extends Slot {
 		LockedSlot(Container container, int index, int x, int y) {
 			super(container, index, x, y);

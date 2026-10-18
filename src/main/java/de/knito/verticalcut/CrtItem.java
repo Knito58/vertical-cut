@@ -156,17 +156,46 @@ public class CrtItem extends Item {
 	 * first one in the inventory; {@link ItemStack#EMPTY} if there is none.
 	 */
 	public static ItemStack active(Player player, boolean inHand) {
-		ItemStack held = held(player);
-		if (!held.isEmpty() || inHand) {
-			return held;
-		}
+		int slot = activeSlot(player, inHand);
+		return slot < 0 ? ItemStack.EMPTY : player.getInventory().getItem(slot);
+	}
+
+	/** Inventory slot of {@link #active}, -1 if there is none. */
+	public static int activeSlot(Player player, boolean inHand) {
 		Inventory inventory = player.getInventory();
+		InteractionHand hand = heldHand(player);
+		if (hand == InteractionHand.MAIN_HAND) {
+			return inventory.getSelectedSlot();
+		}
+		if (hand == InteractionHand.OFF_HAND) {
+			return Inventory.SLOT_OFFHAND;
+		}
+		if (inHand) {
+			return -1;
+		}
 		for (int i = 0; i < inventory.getContainerSize(); i++) {
 			if (inventory.getItem(i).getItem() instanceof CrtItem) {
-				return inventory.getItem(i);
+				return i;
 			}
 		}
-		return ItemStack.EMPTY;
+		return -1;
+	}
+
+	/**
+	 * Opens the module screen of the player's active CRT (sneak + right-click,
+	 * or the module key); Stone CRTs only say they have no slots.
+	 */
+	public static void openModules(ServerPlayer player) {
+		ItemStack crt = active(player, false);
+		if (!(crt.getItem() instanceof CrtItem item)) {
+			return;
+		}
+		if (item.tier.moduleSlots == 0) {
+			player.sendSystemMessage(Component.translatable("verticalcut.crt.no_slots"), true);
+		} else {
+			player.openMenu(new SimpleMenuProvider((id, inventory, p) -> new CrtMenu(id, inventory),
+					Component.translatable("verticalcut.container.modules")));
+		}
 	}
 
 	public static InteractionHand heldHand(Player player) {
@@ -194,12 +223,7 @@ public class CrtItem extends Item {
 			return InteractionResult.PASS;
 		}
 		if (player instanceof ServerPlayer serverPlayer) {
-			if (tier.moduleSlots == 0) {
-				serverPlayer.sendSystemMessage(Component.translatable("verticalcut.crt.no_slots"), true);
-			} else {
-				serverPlayer.openMenu(new SimpleMenuProvider((id, inventory, p) -> new CrtMenu(id, inventory),
-						Component.translatable("verticalcut.container.modules")));
-			}
+			openModules(serverPlayer);
 		}
 		return InteractionResult.SUCCESS;
 	}

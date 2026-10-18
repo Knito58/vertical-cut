@@ -77,6 +77,9 @@ public class VerticalCutMod implements ModInitializer {
 				ANYWHERE.add(id);
 			}
 		});
+		PayloadTypeRegistry.serverboundPlay().register(OpenModulesPayload.TYPE, OpenModulesPayload.CODEC);
+		ServerPlayNetworking.registerGlobalReceiver(OpenModulesPayload.TYPE,
+				(payload, context) -> CrtItem.openModules(context.player()));
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
 			SCANNING.remove(handler.player.getUUID());
 			ANYWHERE.remove(handler.player.getUUID());

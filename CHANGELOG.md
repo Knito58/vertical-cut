@@ -2,6 +2,8 @@
 
 ## 1.0.1 (not released yet)
 
+- New key G (Open CRT modules) opens the module slots of the CRT that draws the cut, even when it sits
+  somewhere in your inventory. The CRT's own slot is locked while the screen is open.
 - Finder bundle with a chest: now finds everything that stores items or fluids, including modded drawers,
   tanks and pipes that only offer Fabric's transfer API.
 - Stained glass panes were invisible in the cut; they now show in their glass color.
