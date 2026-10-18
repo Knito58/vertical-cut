@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -32,7 +33,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * blocks tagged c:ores/tin.
  *
  * A chest as sample (any chest, modded ones in c:chests too) looks for every
- * block with an inventory: chests, barrels, hoppers, furnaces, ...
+ * block that stores items or fluids: chests, barrels, hoppers, furnaces, tanks, ...
  */
 record Finder(Set<Block> blocks, Set<TagKey<Block>> oreTags, boolean containers) {
 	static final Finder NONE = new Finder(Set.of(), Set.of(), false);
@@ -111,14 +112,18 @@ record Finder(Set<Block> blocks, Set<TagKey<Block>> oreTags, boolean containers)
 	}
 
 	/**
-	 * Vanilla inventories are Containers. Many Fabric mods (drawers, machines)
-	 * offer their inventory only through Fabric's transfer API instead.
+	 * Blocks that store items or fluids. Vanilla inventories are Containers;
+	 * many Fabric mods (drawers, tanks, pipes) offer their storage only through
+	 * Fabric's transfer API instead. Only blocks with a block entity count, so
+	 * cauldrons stay plain blocks.
 	 */
 	private static boolean isContainer(Level level, BlockPos pos, BlockState state) {
 		BlockEntity blockEntity = level.getBlockEntity(pos);
-		if (blockEntity instanceof Container) {
-			return true;
+		if (blockEntity == null) {
+			return false;
 		}
-		return blockEntity != null && ItemStorage.SIDED.find(level, pos, state, blockEntity, null) != null;
+		return blockEntity instanceof Container
+				|| ItemStorage.SIDED.find(level, pos, state, blockEntity, null) != null
+				|| FluidStorage.SIDED.find(level, pos, state, blockEntity, null) != null;
 	}
 }

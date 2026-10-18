@@ -14,8 +14,9 @@ nether variants are included.
 **Modded ores** work too when the mod uses the common `c:` tags: an item in `c:ingots/tin` finds the
 blocks in `c:ores/tin`.
 
-A **chest** as sample (chest, trapped chest, or modded chests) makes every block with an inventory
-flash: chests, barrels, shulker boxes, hoppers, furnaces and modded containers.
+A **chest** as sample (chest, trapped chest, or modded chests) makes every block that stores items or fluids
+flash: chests, barrels, shulker boxes, hoppers, furnaces, and modded storage such as drawers, tanks and
+pipes, even when they are painted or hidden. Cauldrons don't count.
 
 ## The flash
 Each found block flashes in four steps: white, its own color, black, its own color. With
