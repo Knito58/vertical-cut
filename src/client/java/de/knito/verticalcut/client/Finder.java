@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -19,6 +20,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -94,7 +96,7 @@ record Finder(Set<Block> blocks, Set<TagKey<Block>> oreTags, boolean containers)
 	}
 
 	boolean matches(Level level, BlockPos pos, BlockState state) {
-		if (containers && state.hasBlockEntity() && level.getBlockEntity(pos) instanceof Container) {
+		if (containers && state.hasBlockEntity() && isContainer(level, pos, state)) {
 			return true;
 		}
 		if (blocks.contains(state.getBlock())) {
@@ -106,5 +108,17 @@ record Finder(Set<Block> blocks, Set<TagKey<Block>> oreTags, boolean containers)
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Vanilla inventories are Containers. Many Fabric mods (drawers, machines)
+	 * offer their inventory only through Fabric's transfer API instead.
+	 */
+	private static boolean isContainer(Level level, BlockPos pos, BlockState state) {
+		BlockEntity blockEntity = level.getBlockEntity(pos);
+		if (blockEntity instanceof Container) {
+			return true;
+		}
+		return blockEntity != null && ItemStorage.SIDED.find(level, pos, state, blockEntity, null) != null;
 	}
 }
