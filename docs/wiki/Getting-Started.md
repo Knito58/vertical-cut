@@ -1,7 +1,7 @@
 # Getting Started
 
 ## 1. Install
-Download the mod from [Modrinth](https://modrinth.com/mod/vertical-cut) or the [GitHub releases](https://github.com/Knito58/vertical-cut/releases).
+Download the mod from the [GitHub releases](https://github.com/Knito58/vertical-cut/releases).
 Put the Vertical Cut jar and Fabric API into your `mods` folder (Fabric Loader for Minecraft 26.3).
 On a server, the mod must be on the server too. Mod Menu is optional; it gives you the settings
 screen.

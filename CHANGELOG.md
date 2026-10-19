@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.1 (not released yet)
+## 1.0.1 (2026-10-19)
 
 - New key G (Open CRT modules) opens the module slots of the CRT that draws the cut, even when it sits
   somewhere in your inventory. The CRT's own slot is locked while the screen is open.

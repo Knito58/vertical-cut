@@ -11,7 +11,7 @@ This is a rewrite of the original Vertical Cut mod for Minecraft 1.5–1.6
 
 **Status:** all six CRTs are in: Stone, Copper, Iron, Gold, Diamond and Netherite.
 
-Download: [Modrinth](https://modrinth.com/mod/vertical-cut) or [GitHub releases](https://github.com/Knito58/vertical-cut/releases).
+Download: [GitHub releases](https://github.com/Knito58/vertical-cut/releases).
 
 The [wiki](docs/wiki/Home.md) has a page for every item, a getting started guide and tips.
 
