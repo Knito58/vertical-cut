@@ -5,6 +5,13 @@ name: release
 on:
   push:
     branches: [release]
+  # By hand from the Actions tab, e.g. to upload an existing version to CurseForge only.
+  workflow_dispatch:
+    inputs:
+      github_release:
+        description: Create the GitHub release too
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -29,6 +36,7 @@ jobs:
           awk -v h="## $v" 'index($0,h)==1{f=1;next} /^## /{f=0} f' CHANGELOG.md > notes.md
           cat notes.md
       - uses: softprops/action-gh-release@v2
+        if: github.event_name == 'push' || inputs.github_release
         with:
           tag_name: v${{ env.VERSION }}
           target_commitish: ${{ github.sha }}
