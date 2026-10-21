@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 env:
-  CURSEFORGE_PROJECT_ID: ""  # fill in once the CurseForge project exists
+  CURSEFORGE_PROJECT_ID: "1757767"  # Vertical Cut on CurseForge
 
 jobs:
   release:
@@ -36,7 +36,7 @@ jobs:
           body_path: notes.md
           files: build/libs/*.jar
       - name: upload to CurseForge
-        # Skipped until the CurseForge project exists; then put its ID here.
+        # Uses CURSEFORGE_PROJECT_ID from the top of this file.
         if: env.CURSEFORGE_PROJECT_ID != ''
         env:
           CF_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
