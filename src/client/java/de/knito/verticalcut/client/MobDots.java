@@ -1,7 +1,9 @@
 package de.knito.verticalcut.client;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -13,6 +15,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.entity.monster.Enemy;
+import net.minecraft.world.entity.monster.EnderMan;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 
@@ -42,19 +45,27 @@ final class MobDots {
 	private record Dot(double along, double y, double width, double height, Kind kind) {
 	}
 
+	/** A neutral mob stays red this long after it was last seen angry (its flag flickers). */
+	private static final long ANGRY_HOLD_MS = 3000;
+
 	private List<Dot> dots = List.of();
+	/** Entity id -> time it was last seen angry. */
+	private final Map<Integer, Long> lastAngry = new HashMap<>();
 
 	/** Finds the living things near the cut; nothing unless the CRT sees mobs. */
 	void tick(Minecraft client, boolean active, float yaw) {
 		LocalPlayer player = client.player;
 		if (!active || player == null || client.level == null) {
 			dots = List.of();
+			lastAngry.clear();
 			return;
 		}
 		double rad = Math.toRadians(yaw);
 		double dirX = -Math.sin(rad);
 		double dirZ = Math.cos(rad);
 		List<Dot> found = new ArrayList<>();
+		long now = System.currentTimeMillis();
+		lastAngry.values().removeIf(t -> now - t > ANGRY_HOLD_MS);
 		AABB box = player.getBoundingBox().inflate(RANGE);
 		List<Entity> entities = new ArrayList<>(client.level.getEntitiesOfClass(LivingEntity.class, box));
 		// Not alive, but a trap: a TNT minecart counts as hostile.
@@ -70,7 +81,7 @@ final class MobDots {
 				continue;
 			}
 			double along = dx * dirX + dz * dirZ;
-			found.add(new Dot(along, entity.getY(), entity.getBbWidth(), entity.getBbHeight(), kindOf(entity)));
+			found.add(new Dot(along, entity.getY(), entity.getBbWidth(), entity.getBbHeight(), kindOf(entity, now)));
 		}
 		dots = found;
 	}
@@ -81,7 +92,7 @@ final class MobDots {
 		return id.getNamespace().equals("minecraft") && id.getPath().equals("tnt_minecart");
 	}
 
-	private static Kind kindOf(Entity entity) {
+	private Kind kindOf(Entity entity, long now) {
 		if (isTntMinecart(entity)) {
 			return Kind.HOSTILE;
 		}
@@ -89,7 +100,15 @@ final class MobDots {
 			return Kind.PLAYER;
 		}
 		// Attacking right now, whatever it is (an iron golem after a crime, an angry wolf, ...).
-		if (entity instanceof Mob mob && mob.isAggressive()) {
+		// The aggressive flag flickers (teleports, lost path), so angry stays red for a few seconds.
+		// An Enderman also shows its scream state, which stays on while it is angry.
+		boolean angry = entity instanceof Mob mob && mob.isAggressive()
+				|| entity instanceof EnderMan enderman && enderman.isCreepy();
+		if (angry) {
+			lastAngry.put(entity.getId(), now);
+			return Kind.HOSTILE;
+		}
+		if (lastAngry.containsKey(entity.getId())) {
 			return Kind.HOSTILE;
 		}
 		if (entity instanceof NeutralMob) {
