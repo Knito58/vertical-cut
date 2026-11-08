@@ -11,6 +11,10 @@ raw ore, ingot, a single nugget, gem, dust or block. Supported: coal, iron, copp
 redstone, lapis, diamond, emerald, quartz, and netherite scrap for ancient debris; deepslate and
 nether variants are included.
 
+Any **block** works as a sample too and finds exactly that block: TNT finds TNT (good for traps),
+obsidian finds obsidian. Only that exact block counts: an oak log doesn't find spruce logs. Common blocks
+like stone make most of the picture flash. Entities such as TNT minecarts are not found.
+
 **Modded ores** work too when the mod uses the common `c:` tags: an item in `c:ingots/tin` finds the
 blocks in `c:ores/tin`.
 

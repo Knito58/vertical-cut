@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Finder bundle: any block as a sample now flashes exactly that block (TNT finds TNT).
+
 ## 1.0.1 (2026-10-19)
 
 - New key G (Open CRT modules) opens the module slots of the CRT that draws the cut, even when it sits

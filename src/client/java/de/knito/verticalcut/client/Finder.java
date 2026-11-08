@@ -15,6 +15,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.Container;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -31,6 +32,9 @@ import net.minecraft.world.level.block.state.BlockState;
  * mods use connect a material to its ores: an item tagged c:ingots/tin (or
  * nuggets, raw_materials, gems, dusts, ores, storage_blocks) looks for the
  * blocks tagged c:ores/tin.
+ *
+ * Any item that places a block also looks for exactly that block: TNT finds
+ * TNT, a block of obsidian finds obsidian.
  *
  * A chest as sample (any chest, modded ones in c:chests too) looks for every
  * block that stores items or fluids: chests, barrels, hoppers, furnaces, tanks, ...
@@ -70,7 +74,7 @@ record Finder(Set<Block> blocks, Set<TagKey<Block>> oreTags, boolean containers)
 		}
 	}
 
-	/** The ores these samples look for; anything that isn't made of an ore is ignored. */
+	/** The ores these samples look for; items that are neither made of an ore nor a block are ignored. */
 	static Finder of(Collection<ItemStack> samples) {
 		if (samples.isEmpty()) {
 			return NONE;
@@ -81,6 +85,9 @@ record Finder(Set<Block> blocks, Set<TagKey<Block>> oreTags, boolean containers)
 		for (ItemStack sample : samples) {
 			containers |= sample.is(Items.CHEST) || sample.is(Items.TRAPPED_CHEST) || sample.is(CHESTS);
 			blocks.addAll(SAMPLES.getOrDefault(sample.getItem(), List.of()));
+			if (sample.getItem() instanceof BlockItem blockItem) {
+				blocks.add(blockItem.getBlock());
+			}
 			BuiltInRegistries.ITEM.wrapAsHolder(sample.getItem()).tags().forEach(tag -> {
 				Identifier id = tag.location();
 				String[] parts = id.getPath().split("/", 2);
