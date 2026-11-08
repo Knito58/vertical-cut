@@ -15,7 +15,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.entity.monster.Enemy;
-import net.minecraft.world.entity.monster.EnderMan;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 
@@ -101,10 +100,7 @@ final class MobDots {
 		}
 		// Attacking right now, whatever it is (an iron golem after a crime, an angry wolf, ...).
 		// The aggressive flag flickers (teleports, lost path), so angry stays red for a few seconds.
-		// An Enderman also shows its scream state, which stays on while it is angry.
-		boolean angry = entity instanceof Mob mob && mob.isAggressive()
-				|| entity instanceof EnderMan enderman && enderman.isCreepy();
-		if (angry) {
+		if (entity instanceof Mob mob && mob.isAggressive()) {
 			lastAngry.put(entity.getId(), now);
 			return Kind.HOSTILE;
 		}
