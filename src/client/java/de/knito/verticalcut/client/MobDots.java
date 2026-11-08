@@ -6,6 +6,8 @@ import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.NeutralMob;
@@ -18,7 +20,7 @@ import net.minecraft.world.phys.AABB;
  * near the cut show as dots in the picture: hostile ones red with a double
  * heartbeat pulse, neutral ones green (blue for color blind players), peaceful
  * ones yellow. A neutral mob that attacks (it turns aggressive) becomes red.
- * Other players are white stick figures. The client only knows entities
+ * A TNT minecart counts as hostile. Other players are white stick figures. The client only knows entities
  * within its entity range, so far away the picture may stay empty.
  */
 final class MobDots {
@@ -53,7 +55,10 @@ final class MobDots {
 		double dirZ = Math.cos(rad);
 		List<Dot> found = new ArrayList<>();
 		AABB box = player.getBoundingBox().inflate(RANGE);
-		for (LivingEntity entity : client.level.getEntitiesOfClass(LivingEntity.class, box)) {
+		List<Entity> entities = new ArrayList<>(client.level.getEntitiesOfClass(LivingEntity.class, box));
+		// Not alive, but a trap: a TNT minecart counts as hostile.
+		entities.addAll(client.level.getEntities((Entity) null, box, e -> e.getType() == EntityType.TNT_MINECART));
+		for (Entity entity : entities) {
 			if (entity == player || !entity.isAlive() || entity.isInvisible() || entity.isSpectator()) {
 				continue;
 			}
@@ -69,7 +74,10 @@ final class MobDots {
 		dots = found;
 	}
 
-	private static Kind kindOf(LivingEntity entity) {
+	private static Kind kindOf(Entity entity) {
+		if (entity.getType() == EntityType.TNT_MINECART) {
+			return Kind.HOSTILE;
+		}
 		if (entity instanceof Player) {
 			return Kind.PLAYER;
 		}

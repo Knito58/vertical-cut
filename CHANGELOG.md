@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Finder bundle: any block as a sample now flashes exactly that block (TNT finds TNT).
+- Netherite CRT: a TNT minecart shows as a hostile dot.
 
 ## 1.0.1 (2026-10-19)
 

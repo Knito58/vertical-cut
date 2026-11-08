@@ -13,7 +13,7 @@ nether variants are included.
 
 Any **block** works as a sample too and finds exactly that block: TNT finds TNT (good for traps),
 obsidian finds obsidian. Only that exact block counts: an oak log doesn't find spruce logs. Common blocks
-like stone make most of the picture flash. Entities such as TNT minecarts are not found.
+like stone make most of the picture flash. Entities are not found by the finder; a TNT minecart shows up as a hostile dot on the [Netherite CRT](Netherite-CRT.md).
 
 **Modded ores** work too when the mod uses the common `c:` tags: an item in `c:ingots/tin` finds the
 blocks in `c:ores/tin`.
