@@ -6,8 +6,9 @@ import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.NeutralMob;
@@ -57,7 +58,7 @@ final class MobDots {
 		AABB box = player.getBoundingBox().inflate(RANGE);
 		List<Entity> entities = new ArrayList<>(client.level.getEntitiesOfClass(LivingEntity.class, box));
 		// Not alive, but a trap: a TNT minecart counts as hostile.
-		entities.addAll(client.level.getEntities((Entity) null, box, e -> e.getType() == EntityType.TNT_MINECART));
+		entities.addAll(client.level.getEntities((Entity) null, box, MobDots::isTntMinecart));
 		for (Entity entity : entities) {
 			if (entity == player || !entity.isAlive() || entity.isInvisible() || entity.isSpectator()) {
 				continue;
@@ -74,8 +75,14 @@ final class MobDots {
 		dots = found;
 	}
 
+	/** Looked up by its id, which stays the same when the Java constant is renamed. */
+	private static boolean isTntMinecart(Entity entity) {
+		Identifier id = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
+		return id.getNamespace().equals("minecraft") && id.getPath().equals("tnt_minecart");
+	}
+
 	private static Kind kindOf(Entity entity) {
-		if (entity.getType() == EntityType.TNT_MINECART) {
+		if (isTntMinecart(entity)) {
 			return Kind.HOSTILE;
 		}
 		if (entity instanceof Player) {
