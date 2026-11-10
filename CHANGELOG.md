@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.3 (2026-11-10)
+
+- Netherite CRT: an angry neutral mob (like an Enderman) no longer flashes between red and green;
+  it stays red for 3 seconds after it was last seen angry.
+
 ## 1.0.2 (2026-11-08)
 
 - Finder bundle: any block as a sample now flashes exactly that block (TNT finds TNT).

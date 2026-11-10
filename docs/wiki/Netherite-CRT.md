@@ -14,7 +14,7 @@ No picture tube needed.
 Everything the Diamond CRT shows (32/64/128 zoom on **B**, 3 module slots), plus **living things
 within about 4 blocks to either side of the cut**, drawn as dots of their size:
 - **red** with a heartbeat pulse: hostile (a TNT minecart counts too),
-- **green**: neutral (a wolf, a bee, an enderman, an iron golem). As soon as it attacks, it turns red,
+- **green**: neutral (a wolf, a bee, an enderman, an iron golem). As soon as it attacks, it turns red and stays red for 3 seconds after it calms down,
 - **yellow**: peaceful (cows, villagers, ...),
 - **white stick figures**: other players.
 
